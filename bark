@@ -1,3 +1,21 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/AHKSS/scripts/main/bark')))()
+
+local Window = OrionLib:MakeWindow({Name = "Title of the library", HidePremium = false, SaveConfig = true, ConfigFolder = "a"})
+
+--[[
+Name = <string> - The name of the UI.
+HidePremium = <bool> - Whether or not the user details shows Premium status or not.
+SaveConfig = <bool> - Toggles the config saving in the UI.
+ConfigFolder = <string> - The name of the folder where the configs are saved.
+IntroEnabled = <bool> - Whether or not to show the intro animation.
+IntroText = <string> - Text to show in the intro animation.
+IntroIcon = <string> - URL to the image you want to use in the intro animation.
+Icon = <string> - URL to the image you want displayed on the window.
+CloseCallback = <function> - Function to execute when the window is closed.
+]]
+
+
+
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -33,7 +51,7 @@ local Success, Response = pcall(function()
 end)
 
 if not Success then
-	warn("\nZort - Failed to load Feather Icons. Error code: " .. Response .. "\n")
+	warn("\nBy William Butcher - Failed to load Feather Icons. Error code: " .. Response .. "\n")
 end	
 
 local function GetIcon(IconName)
@@ -223,7 +241,7 @@ local function LoadCfg(Config)
 				end    
 			end)
 		else
-			warn("Zort Config Loader - Could not find ", a ,b)
+			warn("By William Butcher Config Loader - Could not find ", a ,b)
 		end
 	end)
 end
@@ -469,14 +487,14 @@ function OrionLib:MakeWindow(WindowConfig)
 	local UIHidden = false
 
 	WindowConfig = WindowConfig or {}
-	WindowConfig.Name = WindowConfig.Name or "Zort"
+	WindowConfig.Name = WindowConfig.Name or "By William Butcher"
 	WindowConfig.ConfigFolder = WindowConfig.ConfigFolder or WindowConfig.Name
 	WindowConfig.SaveConfig = WindowConfig.SaveConfig or false
 	WindowConfig.HidePremium = WindowConfig.HidePremium or false
 	if WindowConfig.IntroEnabled == nil then
 		WindowConfig.IntroEnabled = true
 	end
-	WindowConfig.IntroText = WindowConfig.IntroText or "Zort"
+	WindowConfig.IntroText = WindowConfig.IntroText or "By William Butcher"
 	WindowConfig.CloseCallback = WindowConfig.CloseCallback or function() end
 	WindowConfig.ShowIcon = WindowConfig.ShowIcon or false
 	WindowConfig.Icon = WindowConfig.Icon or "rbxassetid://8834748103"

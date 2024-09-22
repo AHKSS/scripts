@@ -1,0 +1,489 @@
+getgenv().Toggle = true
+local path = workspace.CurrentRooms
+
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://6973423505"
+sound.Parent = game.Workspace
+--sound:Play()
+
+local function sendNotification(title, description, buttonText)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = title,
+        Text = description,
+        Duration = 5,
+    })
+end
+
+local function getMaxRoomNumber()
+    local maxNumber = 0
+    for _, room in pairs(path:GetChildren()) do
+        local roomNumber = tonumber(room.Name)
+        if roomNumber and roomNumber > maxNumber then
+            maxNumber = roomNumber
+        end
+    end
+    return maxNumber
+end
+
+local function removeDoorESPsAndBillboards()
+    for _, descendant in pairs(workspace:GetDescendants()) do
+        if descendant:IsA("BoxHandleAdornment") and descendant.Adornee and descendant.Adornee.Parent and descendant.Adornee.Parent.Name == "Door" then
+            descendant:Destroy()
+        elseif descendant:IsA("BillboardGui") and descendant.Adornee and descendant.Adornee.Parent and descendant.Adornee.Parent.Name == "Door" then
+            descendant:Destroy()
+        end
+    end
+end
+
+local function addESP()
+    local maxRoomNumber = getMaxRoomNumber()
+    removeDoorESPsAndBillboards()
+    for _, room in pairs(path:GetChildren()) do
+        local roomNumber = tonumber(room.Name)
+        if roomNumber and (roomNumber == maxRoomNumber or roomNumber == maxRoomNumber - 1) then
+            for _, descendant in pairs(room:GetDescendants()) do
+                if descendant:IsA("Part") and descendant.Name == "KeyHitbox" and not descendant:FindFirstChildOfClass("BoxHandleAdornment") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = descendant.Size
+                    box.Adornee = descendant
+                    box.Color3 = Color3.new(1, 0, 0)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 1
+                    box.Transparency = 0.5
+                    box.Parent = descendant
+
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Adornee = descendant
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+                    billboardGui.Parent = descendant
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.Text = "Key"
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.FredokaOne
+                    textLabel.TextSize = 24
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Parent = billboardGui
+
+                    local uiStroke = Instance.new("UIStroke")
+                    uiStroke.Color = Color3.new(0, 0, 0)
+                    uiStroke.Thickness = 2
+                    uiStroke.Parent = textLabel
+                end
+
+                if descendant:IsA("Part") and descendant.Name == "FuseHolder" and not descendant:FindFirstChildOfClass("BoxHandleAdornment") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = descendant.Size
+                    box.Adornee = descendant
+                    box.Color3 = Color3.new(1, 0, 1)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 1
+                    box.Transparency = 0.5
+                    box.Parent = descendant
+
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Adornee = descendant
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+                    billboardGui.Parent = descendant
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.Text = "Fuses"
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.FredokaOne
+                    textLabel.TextSize = 24
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Parent = billboardGui
+
+                    local uiStroke = Instance.new("UIStroke")
+                    uiStroke.Color = Color3.new(0, 0, 0)
+                    uiStroke.Thickness = 2
+                    uiStroke.Parent = textLabel
+                end
+
+                if descendant:IsA("MeshPart") and descendant.Name == "Handle" and descendant.Parent.Name == "Glowsticks" and not descendant:FindFirstChildOfClass("BoxHandleAdornment") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = descendant.Size
+                    box.Adornee = descendant
+                    box.Color3 = Color3.new(1, 0, 0)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 1
+                    box.Transparency = 0.5
+                    box.Parent = descendant
+
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Adornee = descendant
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+                    billboardGui.Parent = descendant
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.Text = "Glowsticks"
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.FredokaOne
+                    textLabel.TextSize = 24
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Parent = billboardGui
+
+                    local uiStroke = Instance.new("UIStroke")
+                    uiStroke.Color = Color3.new(0, 0, 0)
+                    uiStroke.Thickness = 2
+                    uiStroke.Parent = textLabel
+                end
+
+                if descendant:IsA("Model") and descendant.Parent and descendant.Parent.Name:find("Gold") and tonumber(descendant.Name) and not descendant:FindFirstChildOfClass("BoxHandleAdornment") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = descendant:GetExtentsSize()
+                    box.Adornee = descendant
+                    box.Color3 = Color3.new(1, 1, 0)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 1
+                    box.Transparency = 0.5
+                    box.Parent = descendant
+
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Adornee = descendant
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+                    billboardGui.Parent = descendant
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.Text = "Coin"
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.FredokaOne
+                    textLabel.TextSize = 24
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Parent = billboardGui
+
+                    local uiStroke = Instance.new("UIStroke")
+                    uiStroke.Color = Color3.new(0, 0, 0)
+                    uiStroke.Thickness = 2
+                    uiStroke.Parent = textLabel
+                end
+
+                if descendant:IsA("MeshPart") and descendant.Name == "Main" and descendant.Parent.Name == "LeverForGate" and not descendant:FindFirstChildOfClass("BoxHandleAdornment") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = descendant.Size
+                    box.Adornee = descendant
+                    box.Color3 = Color3.new(0, 0, 1)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 1
+                    box.Transparency = 0.5
+                    box.Parent = descendant
+
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Adornee = descendant
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+                    billboardGui.Parent = descendant
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.Text = "Gate Lever"
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.FredokaOne
+                    textLabel.TextSize = 24
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Parent = billboardGui
+
+                    local uiStroke = Instance.new("UIStroke")
+                    uiStroke.Color = Color3.new(0, 0, 0)
+                    uiStroke.Thickness = 2
+                    uiStroke.Parent = textLabel
+                end
+
+                if descendant:IsA("Model") and descendant.Name == "Door" then
+                    local innerDoor = descendant:FindFirstChild("Door")
+                    if innerDoor and not innerDoor:FindFirstChildOfClass("BoxHandleAdornment") then
+                        local box = Instance.new("BoxHandleAdornment")
+                        box.Size = innerDoor.Size
+                        box.Adornee = innerDoor
+                        box.Color3 = Color3.new(0, 1, 0)
+                        box.AlwaysOnTop = true
+                        box.ZIndex = 1
+                        box.Transparency = 0.5
+                        box.Parent = innerDoor
+
+                        local billboardGui = Instance.new("BillboardGui")
+                        billboardGui.Adornee = innerDoor
+                        billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                        billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                        billboardGui.AlwaysOnTop = true
+                        billboardGui.Parent = innerDoor
+
+                        local textLabel = Instance.new("TextLabel")
+                        textLabel.Size = UDim2.new(1, 0, 1, 0)
+                        textLabel.Text = "Door"
+                        textLabel.TextColor3 = Color3.new(1, 1, 1)
+                        textLabel.Font = Enum.Font.FredokaOne
+                        textLabel.TextSize = 24
+                        textLabel.BackgroundTransparency = 1
+                        textLabel.Parent = billboardGui
+
+                        local uiStroke = Instance.new("UIStroke")
+                        uiStroke.Color = Color3.new(0, 0, 0)
+                        uiStroke.Thickness = 2
+                        uiStroke.Parent = textLabel
+                    end
+                end
+
+                if descendant:IsA("Part") and descendant.Name == "HintBook" and descendant.Parent.Name == "Modular_Bookshelf" and not descendant:FindFirstChildOfClass("BoxHandleAdornment") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = descendant.Size
+                    box.Adornee = descendant
+                    box.Color3 = Color3.new(0.5, 0.5, 1)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 1
+                    box.Transparency = 0.5
+                    box.Parent = descendant
+
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Adornee = descendant
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+                    billboardGui.Parent = descendant
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.Text = "Book"
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.FredokaOne
+                    textLabel.TextSize = 24
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Parent = billboardGui
+
+                    local uiStroke = Instance.new("UIStroke")
+                    uiStroke.Color = Color3.new(0, 0, 0)
+                    uiStroke.Thickness = 2
+                    uiStroke.Parent = textLabel
+                end
+
+                if descendant:IsA("Model") and descendant.Parent.Name == "RushMoving" and descendant.Name == "AssetControl" and not descendant:FindFirstChildOfClass("BoxHandleAdornment") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = descendant.Size
+                    box.Adornee = descendant
+                    box.Color3 = Color3.new(1, 0, 0)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 1
+                    box.Transparency = 0.5
+                    box.Parent = descendant
+
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Adornee = descendant
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+                    billboardGui.Parent = descendant
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.Text = descendant.Name
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.FredokaOne
+                    textLabel.TextSize = 24
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Parent = billboardGui
+
+                    local uiStroke = Instance.new("UIStroke")
+                    uiStroke.Color = Color3.new(0, 0, 0)
+                    uiStroke.Thickness = 2
+                    uiStroke.Parent = textLabel
+                end
+
+                if descendant:IsA("Model") and descendant.Name == "FigureRig" and not descendant:FindFirstChildOfClass("BoxHandleAdornment") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = descendant:GetExtentsSize()
+                    box.Adornee = descendant
+                    box.Color3 = Color3.new(0, 1, 1)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 1
+                    box.Transparency = 0.5
+                    box.Parent = descendant
+
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Adornee = descendant
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+                    billboardGui.Parent = descendant
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.Text = "Figure"
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.FredokaOne
+                    textLabel.TextSize = 24
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Parent = billboardGui
+
+                    local uiStroke = Instance.new("UIStroke")
+                    uiStroke.Color = Color3.new(0, 0, 0)
+                    uiStroke.Thickness = 2
+                    uiStroke.Parent = textLabel
+
+                    local player = game.Players.LocalPlayer
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+                    local distance = (humanoidRootPart.Position - descendant.PrimaryPart.Position).Magnitude
+                    if distance < 10 then
+                        sendNotification("Dikkat!", "Figure çok yakında!", "Tamam")
+                        wait(5)
+                        if (humanoidRootPart.Position - descendant.PrimaryPart.Position).Magnitude < 10 then
+                            sendNotification("Dikkat!", "Figure hala çok yakında!")
+                        end
+                        wait(5)
+                    end
+                end
+
+                if descendant:IsA("Model") and descendant.Name == "SeekRig" and not descendant:FindFirstChildOfClass("BoxHandleAdornment") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = descendant:GetExtentsSize()
+                    box.Adornee = descendant
+                    box.Color3 = Color3.new(1, 0, 0)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 1
+                    box.Transparency = 0.5
+                    box.Parent = descendant
+
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Adornee = descendant
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+                    billboardGui.Parent = descendant
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.Text = "Seek"
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.FredokaOne
+                    textLabel.TextSize = 24
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Parent = billboardGui
+
+                    local uiStroke = Instance.new("UIStroke")
+                    uiStroke.Color = Color3.new(0, 0, 0)
+                    uiStroke.Thickness = 2
+                    uiStroke.Parent = textLabel
+
+                    local player = game.Players.LocalPlayer
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+                    local distance = (humanoidRootPart.Position - descendant.PrimaryPart.Position).Magnitude
+                    if distance < 10 then
+                        sendNotification("Dikkat!", "Figure çok yakında!", "Tamam")
+                        wait(5)
+                        if (humanoidRootPart.Position - descendant.PrimaryPart.Position).Magnitude < 10 then
+                            sendNotification("Dikkat!", "Figure hala çok yakında!")
+                        end
+                        wait(5)
+                    end
+                end
+
+
+                if descendant:IsA("Model") and descendant.Name == "RushMoving" and not descendant:FindFirstChildOfClass("BoxHandleAdornment") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = descendant:GetExtentsSize()
+                    box.Adornee = descendant
+                    box.Color3 = Color3.new(1, 0, 0)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 1
+                    box.Transparency = 0.5
+                    box.Parent = descendant
+
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Adornee = descendant
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+                    billboardGui.Parent = descendant
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.Text = "Figure"
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.FredokaOne
+                    textLabel.TextSize = 24
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Parent = billboardGui
+
+                    local uiStroke = Instance.new("UIStroke")
+                    uiStroke.Color = Color3.new(0, 0, 0)
+                    uiStroke.Thickness = 2
+                    uiStroke.Parent = textLabel
+
+                    local player = game.Players.LocalPlayer
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+                    local distance = (humanoidRootPart.Position - descendant.PrimaryPart.Position).Magnitude
+                    if distance < 10 then
+                        sendNotification("Dikkat!", "Figure çok yakında!", "Tamam")
+                        wait(5)
+                        if (humanoidRootPart.Position - descendant.PrimaryPart.Position).Magnitude < 10 then
+                            sendNotification("Dikkat!", "Figure hala çok yakında!")
+                        end
+                        wait(5)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function removeEyes()
+    for _, descendant in pairs(workspace:GetDescendants()) do
+        if descendant.Name == "Eyes" then
+            descendant:Destroy()
+        end
+    end
+end
+
+local function removeESP()
+    for _, descendant in pairs(workspace:GetDescendants()) do
+        if descendant:IsA("BoxHandleAdornment") then
+            descendant:Destroy()
+        end
+    end
+end
+
+local function removeBillboardGuis()
+    for _, descendant in pairs(workspace:GetDescendants()) do
+        if descendant:IsA("BillboardGui") then
+            descendant:Destroy()
+        end
+    end
+end
+
+-- Sürekli olarak ESP eklemek ve Eyes nesnesini silmek için while döngüsü
+while getgenv().Toggle do
+    task.spawn(addESP)
+    task.spawn(removeEyes)
+    task.wait(3) -- 10 saniye bekleyin ve tekrar kontrol edin
+end
+
+if not getgenv().Toggle then
+    removeESP()
+    removeBillboardGuis()
+end
+
+-- FULL BRIGHT
+local Lighting = game:GetService("Lighting")
+Lighting.Brightness = 2
+Lighting.ClockTime = 14
+Lighting.FogEnd = 100000
+Lighting.GlobalShadows = false
+Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)

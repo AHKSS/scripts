@@ -3300,8 +3300,13 @@ function Library:CreateWindow(...)
             return Groupbox;
         end;
     
-        function Tab:AddLeftGroupbox(Name)
-            return Tab:AddGroupbox({ Side = 1; Name = Name; });
+        function Tab:AddLeftGroupbox(Name, Options)
+            Options = Options or {}
+            return Tab:AddGroupbox({ 
+                Side = 1; 
+                Name = Name; 
+                isVisible = Options.isVisible ~= false  -- Eğer belirtilmemişse varsayılan olarak true
+            });
         end;
     
         function Tab:AddRightGroupbox(Name)

@@ -2166,12 +2166,13 @@ do
 
         local Dropdown = {
             Values = Info.Values;
-            Value = Info.Multi and {};
+            Value = Info.Multi and {} or nil;
             Multi = Info.Multi;
             Type = 'Dropdown';
-            SpecialType = Info.SpecialType; -- can be either 'Player' or 'Team'
+            SpecialType = Info.SpecialType;
             Callback = Info.Callback or function(Value) end;
         };
+    
 
         local Groupbox = self;
         local Container = Groupbox.Container;
@@ -2330,21 +2331,22 @@ do
         function Dropdown:Display()
             local Values = Dropdown.Values;
             local Str = '';
-
+    
             if Info.Multi then
                 for Idx, Value in next, Values do
                     if Dropdown.Value[Value] then
                         Str = Str .. Value .. ', ';
                     end;
                 end;
-
                 Str = Str:sub(1, #Str - 2);
             else
                 Str = Dropdown.Value or '';
             end;
-
+    
             ItemList.Text = (Str == '' and '--' or Str);
         end;
+    
+    
 
         function Dropdown:GetActiveValues()
             if Info.Multi then
@@ -2408,7 +2410,7 @@ do
                     { BorderColor3 = 'OutlineColor', ZIndex = 23 }
                 );
 
-                local Selected;
+                local Selected = false;
 
                 if Info.Multi then
                     Selected = Dropdown.Value[Value];
@@ -2422,10 +2424,10 @@ do
                     else
                         Selected = Dropdown.Value == Value;
                     end;
-
+    
                     ButtonLabel.TextColor3 = Selected and Library.AccentColor or Library.FontColor;
                     Library.RegistryMap[ButtonLabel].Properties.TextColor3 = Selected and 'AccentColor' or 'FontColor';
-                end;
+                end;    
 
                 ButtonLabel.InputBegan:Connect(function(Input)
                     if Input.UserInputType == Enum.UserInputType.MouseButton1 then

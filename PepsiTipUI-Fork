@@ -2380,6 +2380,7 @@ do
             local Count = 0;
 
             for Idx, Value in next, Values do
+                if Value == "--" then
                 local Table = {};
 
                 Count = Count + 1;
@@ -2480,6 +2481,7 @@ do
                 Dropdown:Display();
 
                 Buttons[Button] = Table;
+                end
             end;
 
             Scrolling.CanvasSize = UDim2.fromOffset(0, (Count * 20) + 1);

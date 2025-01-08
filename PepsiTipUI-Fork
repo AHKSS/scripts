@@ -2166,18 +2166,12 @@ do
 
         local Dropdown = {
             Values = Info.Values;
-            Value = nil; 
+            Value = Info.Multi and {};
             Multi = Info.Multi;
             Type = 'Dropdown';
-            SpecialType = Info.SpecialType;
+            SpecialType = Info.SpecialType; -- can be either 'Player' or 'Team'
             Callback = Info.Callback or function(Value) end;
         };
-    
-        if Info.Default == 1 then
-            table.insert(Dropdown.Values, 1, "--")
-            Dropdown.Value = "--"
-        end
-    
 
         local Groupbox = self;
         local Container = Groupbox.Container;
@@ -2336,22 +2330,21 @@ do
         function Dropdown:Display()
             local Values = Dropdown.Values;
             local Str = '';
-    
+
             if Info.Multi then
                 for Idx, Value in next, Values do
                     if Dropdown.Value[Value] then
                         Str = Str .. Value .. ', ';
                     end;
                 end;
+
                 Str = Str:sub(1, #Str - 2);
             else
                 Str = Dropdown.Value or '';
             end;
-    
+
             ItemList.Text = (Str == '' and '--' or Str);
         end;
-    
-    
 
         function Dropdown:GetActiveValues()
             if Info.Multi then
@@ -2376,11 +2369,10 @@ do
                     Element:Destroy();
                 end;
             end;
-    
+
             local Count = 0;
 
             for Idx, Value in next, Values do
-                if Value == "--" then
                 local Table = {};
 
                 Count = Count + 1;
@@ -2416,7 +2408,7 @@ do
                     { BorderColor3 = 'OutlineColor', ZIndex = 23 }
                 );
 
-                local Selected = Dropdown.Value == Value;
+                local Selected;
 
                 if Info.Multi then
                     Selected = Dropdown.Value[Value];
@@ -2431,12 +2423,9 @@ do
                         Selected = Dropdown.Value == Value;
                     end;
 
-                    Selected = Dropdown.Value == Value;
-
-    
                     ButtonLabel.TextColor3 = Selected and Library.AccentColor or Library.FontColor;
                     Library.RegistryMap[ButtonLabel].Properties.TextColor3 = Selected and 'AccentColor' or 'FontColor';
-                end;    
+                end;
 
                 ButtonLabel.InputBegan:Connect(function(Input)
                     if Input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -2481,7 +2470,6 @@ do
                 Dropdown:Display();
 
                 Buttons[Button] = Table;
-                end
             end;
 
             Scrolling.CanvasSize = UDim2.fromOffset(0, (Count * 20) + 1);

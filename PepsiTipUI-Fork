@@ -2166,12 +2166,17 @@ do
 
         local Dropdown = {
             Values = Info.Values;
-            Value = Info.Multi and {} or nil;
+            Value = nil; 
             Multi = Info.Multi;
             Type = 'Dropdown';
             SpecialType = Info.SpecialType;
             Callback = Info.Callback or function(Value) end;
         };
+    
+        if Info.Default == 1 then
+            table.insert(Dropdown.Values, 1, "--")
+            Dropdown.Value = "--"
+        end
     
 
         local Groupbox = self;
@@ -2371,7 +2376,7 @@ do
                     Element:Destroy();
                 end;
             end;
-
+    
             local Count = 0;
 
             for Idx, Value in next, Values do
@@ -2410,7 +2415,7 @@ do
                     { BorderColor3 = 'OutlineColor', ZIndex = 23 }
                 );
 
-                local Selected = false;
+                local Selected = Dropdown.Value == Value;
 
                 if Info.Multi then
                     Selected = Dropdown.Value[Value];
@@ -2424,6 +2429,9 @@ do
                     else
                         Selected = Dropdown.Value == Value;
                     end;
+
+                    Selected = Dropdown.Value == Value;
+
     
                     ButtonLabel.TextColor3 = Selected and Library.AccentColor or Library.FontColor;
                     Library.RegistryMap[ButtonLabel].Properties.TextColor3 = Selected and 'AccentColor' or 'FontColor';

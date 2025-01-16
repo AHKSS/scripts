@@ -2486,6 +2486,28 @@ do
             Dropdown:BuildDropdownList();
         end;
 
+        function Dropdown:UpdateValues(NewValues)
+            self.Values = NewValues
+            self:BuildDropdownList()
+            self:Display()
+            
+            if not Info.Multi then
+                if not table.find(self.Values, self.Value) then
+                    self.Value = nil
+                end
+            else
+                for Value in pairs(self.Value) do
+                    if not table.find(self.Values, Value) then
+                        self.Value[Value] = nil
+                    end
+                end
+            end
+            
+            Library:SafeCallback(self.Callback, self.Value)
+            Library:SafeCallback(self.Changed, self.Value)
+            Library:AttemptSave()
+        end
+
         function Dropdown:OpenDropdown()
             ListOuter.Visible = true;
             Library.OpenedFrames[ListOuter] = true;

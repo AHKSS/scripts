@@ -45,6 +45,8 @@ local Library = {
 
     Signals = {};
     ScreenGui = ScreenGui;
+    
+    UIScale = 1;
 };
 
 local RainbowStep = 0
@@ -448,6 +450,63 @@ function Library:UpdateColorsUsingRegistry()
         end;
     end;
 end;
+
+function Library:SetSize(Scale)
+    if type(Scale) ~= "number" then
+        Scale = 1
+    end
+    
+    Scale = math.max(0.5, math.min(2, Scale)) -- Limit scale between 0.5 and 2
+    
+    -- Apply scale to all UI elements
+    for _, Object in next, Library.Registry do
+        local Instance = Object.Instance
+        
+        -- Scale text sizes
+        if Instance:IsA("TextLabel") or Instance:IsA("TextButton") or Instance:IsA("TextBox") then
+            if Instance.TextSize then
+                local OriginalTextSize = Instance.TextSize / (Library.UIScale or 1)
+                Instance.TextSize = OriginalTextSize * Scale
+            end
+        end
+        
+        -- Scale frame sizes that aren't dependent on content
+        if Instance:IsA("Frame") or Instance:IsA("ScrollingFrame") or Instance:IsA("TextButton") then
+            if not Instance:FindFirstChildOfClass("UIListLayout") then
+                local OriginalSize = Instance.Size
+                
+                -- Only scale absolute size, not relative size
+                if OriginalSize.X.Scale == 0 and OriginalSize.Y.Scale == 0 then
+                    Instance.Size = UDim2.new(
+                        OriginalSize.X.Scale, 
+                        OriginalSize.X.Offset * Scale,
+                        OriginalSize.Y.Scale,
+                        OriginalSize.Y.Offset * Scale
+                    )
+                end
+            end
+        end
+    end
+    
+    -- Store the current scale for future reference
+    Library.UIScale = Scale
+    
+    -- Resize all groupboxes to accommodate the new scale
+    for _, Window in pairs(Library.OpenedFrames) do
+        if Window.Holder then
+            for _, GroupBox in pairs(Window.Holder:GetChildren()) do
+                if GroupBox:IsA("Frame") and GroupBox.Name:match("Groupbox") and GroupBox.Container then
+                    -- Force resize of groupboxes
+                    if GroupBox.Resize then
+                        GroupBox:Resize()
+                    end
+                end
+            end
+        end
+    end
+    
+    return self
+end
 
 function Library:GiveSignal(Signal)
     -- Only used for signals not attached to library instances, as those should be cleaned up on object destruction by Roblox

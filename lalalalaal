@@ -1,0 +1,404 @@
+local player = game.Players.LocalPlayer
+local userInputService = game:GetService("UserInputService")
+local camera = workspace.CurrentCamera
+
+-- GUI elemanlarını oluştur
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CutsceneGui"
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Name = "FlashFrame"
+frame.Size = UDim2.new(1, 0, 1, 0) -- Tüm ekranı kapla
+frame.BackgroundColor3 = Color3.new(1, 1, 1) -- Beyaz renk
+frame.BackgroundTransparency = 1 -- Başlangıçta görünmez
+frame.BorderSizePixel = 0
+frame.ZIndex = 10 -- En üstte görünsün
+frame.Parent = screenGui
+
+-- Thank You mesajı için TextLabel
+local thankYouLabel = Instance.new("TextLabel")
+thankYouLabel.Name = "ThankYouLabel"
+thankYouLabel.Size = UDim2.new(0, 400, 0, 70) -- Daha büyük boyut
+thankYouLabel.Position = UDim2.new(0.5, -200, 0.7, 0) -- Ekranın alt kısmında ortada
+thankYouLabel.BackgroundTransparency = 1 -- Arka plan şeffaf
+thankYouLabel.Text = "Thank you for using William Hub"
+thankYouLabel.TextColor3 = Color3.new(1, 1, 1) -- Beyaz yazı
+thankYouLabel.TextSize = 24 -- Daha büyük yazı
+thankYouLabel.Font = Enum.Font.FredokaOne -- Fredoka One font
+thankYouLabel.Visible = false -- Başlangıçta görünmez
+thankYouLabel.ZIndex = 11 -- Flash frame'in üzerinde görünsün
+thankYouLabel.Parent = screenGui
+
+-- UIStroke ekle
+local textStroke = Instance.new("UIStroke")
+textStroke.Thickness = 2
+textStroke.Color = Color3.new(0, 0, 0) -- Siyah kenar
+textStroke.Transparency = 0
+textStroke.Parent = thankYouLabel
+
+-- Ses efekti oluştur
+local soundEffect = Instance.new("Sound")
+soundEffect.Name = "CutsceneSound"
+soundEffect.SoundId = "rbxassetid://9043184557" -- Örnek bir ses ID'si (değiştirilebilir)
+soundEffect.Volume = 1
+soundEffect.Parent = screenGui
+
+local isCutscenePlaying = false
+
+-- Dans animasyonu için değişken
+local dansAnimation = nil
+
+-- Part ve Logo oluştur
+local function createPartWithLogo()
+	-- Part oluştur
+	local logoPart = Instance.new("Part")
+	logoPart.Name = "LogoPart"
+	logoPart.Size = Vector3.new(4, 4, 0.5)
+	logoPart.Anchored = true
+	logoPart.CanCollide = true
+	logoPart.Material = Enum.Material.SmoothPlastic
+	logoPart.BrickColor = BrickColor.new("Bright blue")
+
+	-- Uzak bir konuma yerleştir
+	local farPosition = Vector3.new(999999, 999999, 999999)
+	logoPart.Position = farPosition
+	logoPart.Parent = workspace
+
+	-- Zemin oluştur
+	local floor = Instance.new("Part")
+	floor.Name = "CutsceneFloor"
+	floor.Size = Vector3.new(20, 1, 20) -- Geniş bir zemin
+	floor.Anchored = true
+	floor.CanCollide = true
+	floor.Material = Enum.Material.SmoothPlastic
+	floor.BrickColor = BrickColor.new("Dark grey")
+	floor.Position = farPosition - Vector3.new(0, 2.5, 0) -- Logo partın altında
+	floor.Parent = workspace
+
+	-- SurfaceGui oluştur
+	local surfaceGui = Instance.new("SurfaceGui")
+	surfaceGui.Name = "LogoGui"
+	surfaceGui.Face = Enum.NormalId.Front
+	surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	surfaceGui.PixelsPerStud = 50
+	surfaceGui.Parent = logoPart
+
+	-- ImageLabel oluştur (logo)
+	local imageLabel = Instance.new("ImageLabel")
+	imageLabel.Name = "Logo"
+	imageLabel.Size = UDim2.new(1, 0, 1, 0)
+	imageLabel.BackgroundTransparency = 1
+	imageLabel.Image = "rbxassetid://123860527965366" -- Roblox logosu (değiştirilebilir)
+	imageLabel.Parent = surfaceGui
+
+	return logoPart, floor
+end
+
+-- Dans animasyonu yükle
+local function loadDanceAnimation()
+	if dansAnimation then return dansAnimation end
+
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+
+	-- Dans animasyonu oluştur
+	local animation = Instance.new("Animation")
+	animation.AnimationId = "rbxassetid://507771019" -- Temel dans animasyonu (değiştirilebilir)
+
+	dansAnimation = humanoid:LoadAnimation(animation)
+	return dansAnimation
+end
+
+-- Flaş efekti fonksiyonu
+local function playFlashEffect(duration)
+	local tweenService = game:GetService("TweenService")
+	local fadeInInfo = TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+	local fadeOutInfo = TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+
+	-- Flaşı göster
+	local showTween = tweenService:Create(frame, fadeInInfo, {BackgroundTransparency = 0})
+	showTween:Play()
+	showTween.Completed:Wait()
+
+	-- Belirtilen süre kadar bekle
+	wait(duration)
+
+	-- Flaşı kaldır
+	local hideTween = tweenService:Create(frame, fadeOutInfo, {BackgroundTransparency = 1})
+	hideTween:Play()
+	hideTween.Completed:Wait()
+end
+
+local function playCutscene()
+	if isCutscenePlaying then return end
+	isCutscenePlaying = true
+
+	print("Cutscene başlatılıyor...")
+
+	-- Ses efektini oynat
+	soundEffect:Play()
+
+	-- Oyuncu kontrolünü devre dışı bırak
+	local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
+	if humanoid then
+		humanoid.WalkSpeed = 0
+		humanoid.JumpPower = 0
+	end
+
+	-- Oyuncunun karakterini ve pozisyonunu al
+	local character = player.Character
+	local characterPosition = character and character:FindFirstChild("HumanoidRootPart") and 
+		character.HumanoidRootPart.Position or Vector3.new(0, 5, 0)
+
+	-- Kamera ayarlarını ve orijinal pozisyonu kaydet
+	local originalCameraType = camera.CameraType
+	local originalCameraSubject = camera.CameraSubject
+	local originalCameraCFrame = camera.CFrame
+
+	-- 1. Logo part'ı ve zemini oluştur (flaş efekti öncesinde hazırla)
+	local logoPart, floor = createPartWithLogo()
+	print("Logo part ve zemin oluşturuldu")
+
+	-- 2. Dans animasyonunu yükle
+	loadDanceAnimation()
+	print("Dans animasyonu yüklendi")
+
+	-- 3. Tek bir flaş efekti kullan - hem geçiş hem de başlangıç için
+	print("İlk flaş efekti başlatılıyor...")
+
+	-- Flaşı göster (manuel olarak yapıyoruz, fonksiyonu kullanmıyoruz)
+	local tweenService = game:GetService("TweenService")
+	local fadeInInfo = TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+	local fadeOutInfo = TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+
+	local showTween = tweenService:Create(frame, fadeInInfo, {BackgroundTransparency = 0})
+	showTween:Play()
+	showTween.Completed:Wait()
+
+	-- Flaş ekranda iken kamera ayarlarını değiştir ve uzak konuma ışınla
+	camera.CameraType = Enum.CameraType.Scriptable
+	local farPosition = logoPart.Position
+	local cameraPosition = farPosition - Vector3.new(0, 0, 10) -- Part'ın 10 birim önünde
+	camera.CFrame = CFrame.new(cameraPosition, farPosition)
+	print("Kamera uzak konuma ışınlandı")
+
+	-- Kısa bir süre bekle
+	wait(0.5)
+
+	-- Flaşı kaldır
+	local hideTween = tweenService:Create(frame, fadeOutInfo, {BackgroundTransparency = 1})
+	hideTween:Play()
+	hideTween.Completed:Wait()
+	print("İlk flaş efekti tamamlandı")
+
+	-- 4. Thank You mesajını göster
+	thankYouLabel.TextTransparency = 1 -- Başlangıçta tamamen şeffaf
+	textStroke.Transparency = 1 -- Başlangıçta tamamen şeffaf
+	thankYouLabel.Visible = true
+
+	local labelFadeIn = tweenService:Create(
+		thankYouLabel,
+		TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+		{TextTransparency = 0} -- Tamamen görünür
+	)
+
+	local strokeFadeIn = tweenService:Create(
+		textStroke,
+		TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+		{Transparency = 0} -- Tamamen görünür
+	)
+
+	labelFadeIn:Play()
+	strokeFadeIn:Play()
+
+	wait(1) -- Kamera konumunda biraz bekle
+
+	-- 5. Kamera daha smooth bir şekilde part'a yaklaşsın
+	print("Kamera part'a yaklaşıyor...")
+
+	-- Part'a yakın pozisyon
+	local closeToPart = CFrame.new(
+		farPosition - Vector3.new(0, 0, 5), -- Part'ın 5 birim önünde
+		farPosition
+	)
+
+	-- Kamerayı daha smooth bir şekilde part'a yaklaştır
+	-- Daha smooth hareket için Linear easing style kullanıyoruz
+	-- ve daha yüksek FPS için RenderStepped kullanacağız
+
+	local startCFrame = camera.CFrame
+	local endCFrame = closeToPart
+	local tweenDuration = 4 -- 4 saniye sürecek
+	local startTime = tick()
+
+	-- RenderStepped ile her frame'de kamera pozisyonunu güncelle
+	local cameraConnection
+	cameraConnection = game:GetService("RunService").RenderStepped:Connect(function()
+		local elapsed = tick() - startTime
+		local alpha = math.min(elapsed / tweenDuration, 1) -- 0 ile 1 arasında bir değer
+
+		-- Smooth lerp için özel bir easing fonksiyonu kullan
+		-- Cubic easing: smoother acceleration and deceleration
+		local easedAlpha = alpha * alpha * (3 - 2 * alpha)
+
+		-- Kamera pozisyonunu güncelle
+		camera.CFrame = startCFrame:Lerp(endCFrame, easedAlpha)
+
+		-- Tween tamamlandıysa bağlantıyı kapat
+		if alpha >= 1 then
+			cameraConnection:Disconnect()
+			print("Kamera part'a yaklaştı")
+		end
+	end)
+
+	-- Tween'in tamamlanmasını bekle
+	wait(tweenDuration + 0.1) -- Biraz fazladan bekle, bağlantının kapanmasını garantilemek için
+
+	-- Part'a biraz daha yakından bak
+	wait(1)
+
+	-- 6. İkinci flaş efekti - oyuncuya dönüş ve dans başlangıcı için
+	print("İkinci flaş efekti başlatılıyor...")
+
+	-- Flaşı göster
+	local showTween2 = tweenService:Create(frame, fadeInInfo, {BackgroundTransparency = 0})
+	showTween2:Play()
+	showTween2.Completed:Wait()
+
+	-- Flaş ekranda iken:
+	-- 1. Oyuncunun karakterini ve pozisyonunu tekrar kontrol et
+	character = player.Character
+	characterPosition = character and character:FindFirstChild("HumanoidRootPart") and 
+		character.HumanoidRootPart.Position or Vector3.new(0, 5, 0)
+
+	-- 2. Kamerayı oyuncuya döndür
+	local danceViewCFrame = CFrame.new(
+		characterPosition + Vector3.new(5, 2, 5), -- Oyuncunun biraz uzağında ve yukarıda
+		characterPosition
+	)
+	camera.CFrame = danceViewCFrame
+
+	-- 3. Dans animasyonunu başlat
+	print("Oyuncu dans etmeye başlıyor...")
+	dansAnimation:Play()
+
+	-- Kısa bir süre bekle
+	wait(0.3)
+
+	-- Flaşı kaldır
+	local hideTween2 = tweenService:Create(frame, fadeOutInfo, {BackgroundTransparency = 1})
+	hideTween2:Play()
+	hideTween2.Completed:Wait()
+	print("İkinci flaş efekti tamamlandı")
+
+	-- Kamerayı oyuncunun etrafında yavaşça döndür
+	local startTime = tick()
+	local rotationDuration = 4 -- 4 saniye boyunca dönecek
+
+	-- Dans ederken kamerayı oyuncunun etrafında döndür
+	local rotationConnection
+	rotationConnection = game:GetService("RunService").RenderStepped:Connect(function()
+		local elapsed = tick() - startTime
+		if elapsed >= rotationDuration then
+			rotationConnection:Disconnect()
+			return
+		end
+
+		-- Oyuncunun güncel pozisyonunu al (hareket edebilir)
+		local currentCharPos = character and character:FindFirstChild("HumanoidRootPart") and 
+			character.HumanoidRootPart.Position or characterPosition
+
+		local angle = (elapsed / rotationDuration) * math.pi * 2 -- Tam bir dönüş (360 derece)
+		local radius = 5 -- Dönüş yarıçapı
+
+		local newX = currentCharPos.X + math.cos(angle) * radius
+		local newZ = currentCharPos.Z + math.sin(angle) * radius
+		local newPosition = Vector3.new(newX, currentCharPos.Y + 2, newZ)
+
+		camera.CFrame = CFrame.new(newPosition, currentCharPos)
+	end)
+
+	wait(rotationDuration) -- Dans animasyonu ve kamera dönüşü için bekle
+
+	-- 7. Son flaş efekti
+	print("Son flaş efekti başlatılıyor...")
+	playFlashEffect(0.5)
+	print("Son flaş efekti tamamlandı")
+
+	-- 8. Dans animasyonunu durdur
+	dansAnimation:Stop()
+	print("Dans durduruldu")
+
+	-- 9. Logo part'ı ve zemini kaldır
+	logoPart:Destroy()
+	floor:Destroy()
+	print("Logo part ve zemin kaldırıldı")
+
+	-- Thank You mesajını gizle
+	local labelFadeOut = tweenService:Create(
+		thankYouLabel,
+		TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
+		{TextTransparency = 1} -- Tamamen şeffaf
+	)
+
+	local strokeFadeOut = tweenService:Create(
+		textStroke,
+		TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
+		{Transparency = 1} -- Tamamen şeffaf
+	)
+
+	labelFadeOut:Play()
+	strokeFadeOut:Play()
+
+	labelFadeOut.Completed:Connect(function()
+		thankYouLabel.Visible = false
+	end)
+
+	-- 10. Kamerayı smooth bir şekilde orijinal pozisyonuna döndür
+	-- 10. Kamerayı smooth bir şekilde orijinal pozisyonuna döndür
+	print("Kamera orijinal pozisyonuna dönüyor...")
+
+	-- Aynı smooth yaklaşımı kullanarak kamerayı orijinal pozisyonuna döndür
+	local startReturnCFrame = camera.CFrame
+	local endReturnCFrame = originalCameraCFrame
+	local returnDuration = 2 -- 2 saniye sürecek
+	local returnStartTime = tick()
+
+	local returnConnection
+	returnConnection = game:GetService("RunService").RenderStepped:Connect(function()
+		local elapsed = tick() - returnStartTime
+		local alpha = math.min(elapsed / returnDuration, 1) -- 0 ile 1 arasında bir değer
+
+		-- Smooth lerp için özel bir easing fonksiyonu kullan
+		local easedAlpha = alpha * alpha * (3 - 2 * alpha)
+
+		-- Kamera pozisyonunu güncelle
+		camera.CFrame = startReturnCFrame:Lerp(endReturnCFrame, easedAlpha)
+
+		-- Tween tamamlandıysa bağlantıyı kapat
+		if alpha >= 1 then
+			returnConnection:Disconnect()
+			print("Kamera orijinal pozisyonuna döndü")
+		end
+	end)
+
+	-- Tween'in tamamlanmasını bekle
+	wait(returnDuration + 0.1) -- Biraz fazladan bekle, bağlantının kapanmasını garantilemek için
+
+	-- 11. Kamera ayarlarını eski haline getir
+	camera.CameraType = originalCameraType
+	camera.CameraSubject = originalCameraSubject
+
+	-- 12. Oyuncu kontrolünü geri ver
+	if humanoid then
+		humanoid.WalkSpeed = 16
+		humanoid.JumpPower = 50
+	end
+
+	isCutscenePlaying = false
+	print("Cutscene tamamlandı.")
+end
+
+playCutscene()

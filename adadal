@@ -497,6 +497,29 @@ function Library:OnUnload(Callback)
     Library.OnUnload = Callback
 end
 
+function Library:UnloadAndDisable()
+    -- Set all toggles to false
+    for _, toggle in pairs(Toggles) do
+        if toggle.Value == true then
+            toggle:SetValue(false)
+        end
+    end
+    
+    -- Unload all of the signals
+    for Idx = #Library.Signals, 1, -1 do
+        local Connection = table.remove(Library.Signals, Idx)
+        Connection:Disconnect()
+    end
+
+    -- Call our unload callback, maybe to undo some hooks etc
+    if Library.OnUnload then
+        Library.OnUnload()
+    end
+
+    ScreenGui:Destroy()
+end
+
+
 Library:GiveSignal(ScreenGui.DescendantRemoving:Connect(function(Instance)
     if Library.RegistryMap[Instance] then
         Library:RemoveFromRegistry(Instance);

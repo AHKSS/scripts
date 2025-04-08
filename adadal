@@ -2080,9 +2080,26 @@ do
             Library:UpdateDependencyBoxes();
         end;
 
+        -- Mobil desteği için dokunma girişini algılama
         ToggleRegion.InputBegan:Connect(function(Input)
-            if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
-                Toggle:SetValue(not Toggle.Value) -- Why was it not like this from the start?
+            if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) and not Library:MouseIsOverOpenedFrame() then
+                Toggle:SetValue(not Toggle.Value)
+                Library:AttemptSave();
+            end;
+        end);
+
+        -- Mobil için ToggleOuter'a da dokunma desteği ekleyelim
+        ToggleOuter.InputBegan:Connect(function(Input)
+            if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) and not Library:MouseIsOverOpenedFrame() then
+                Toggle:SetValue(not Toggle.Value)
+                Library:AttemptSave();
+            end;
+        end);
+
+        -- Mobil için ToggleLabel'a da dokunma desteği ekleyelim
+        ToggleLabel.InputBegan:Connect(function(Input)
+            if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) and not Library:MouseIsOverOpenedFrame() then
+                Toggle:SetValue(not Toggle.Value)
                 Library:AttemptSave();
             end;
         end);

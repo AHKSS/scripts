@@ -2036,6 +2036,15 @@ do
             Parent = ToggleOuter;
         });
 
+        -- Mobil için dokunma alanını genişletelim
+        local TouchArea = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, 225, 1, 0); -- Genişletilmiş dokunma alanı
+            Position = UDim2.new(0, 0, 0, 0);
+            ZIndex = 7;
+            Parent = ToggleOuter;
+        });
+
         Library:OnHighlight(ToggleRegion, ToggleOuter,
             { BorderColor3 = 'AccentColor' },
             { BorderColor3 = 'Black' }
@@ -2080,29 +2089,30 @@ do
             Library:UpdateDependencyBoxes();
         end;
 
-        -- Mobil desteği için dokunma girişini algılama
-        ToggleRegion.InputBegan:Connect(function(Input)
-            if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) and not Library:MouseIsOverOpenedFrame() then
-                Toggle:SetValue(not Toggle.Value)
-                Library:AttemptSave();
-            end;
-        end);
+        -- Dokunma olayını işleyen fonksiyon
+        local function HandleToggleTouch(Input)
+            if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) then
+                if not Library:MouseIsOverOpenedFrame() then
+                    Toggle:SetValue(not Toggle.Value)
+                    Library:AttemptSave();
+                end
+            end
+        end
 
-        -- Mobil için ToggleOuter'a da dokunma desteği ekleyelim
-        ToggleOuter.InputBegan:Connect(function(Input)
-            if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) and not Library:MouseIsOverOpenedFrame() then
-                Toggle:SetValue(not Toggle.Value)
-                Library:AttemptSave();
-            end;
-        end);
+        -- Tüm dokunma alanları için aynı işleyiciyi kullanıyoruz
+        TouchArea.InputBegan:Connect(HandleToggleTouch);
+        ToggleRegion.InputBegan:Connect(HandleToggleTouch);
+        ToggleOuter.InputBegan:Connect(HandleToggleTouch);
+        ToggleInner.InputBegan:Connect(HandleToggleTouch);
+        ToggleLabel.InputBegan:Connect(HandleToggleTouch);
 
-        -- Mobil için ToggleLabel'a da dokunma desteği ekleyelim
-        ToggleLabel.InputBegan:Connect(function(Input)
-            if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) and not Library:MouseIsOverOpenedFrame() then
+        -- Mobil cihazlar için özel dokunma olayı
+        if game:GetService("UserInputService").TouchEnabled then
+            TouchArea.TouchTap:Connect(function()
                 Toggle:SetValue(not Toggle.Value)
                 Library:AttemptSave();
-            end;
-        end);
+            end);
+        end
 
         if Toggle.Risky then
             Library:RemoveFromRegistry(ToggleLabel)

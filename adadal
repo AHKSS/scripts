@@ -2390,39 +2390,43 @@ do
 
         -- Mobil cihazlar için dokunma desteği
         if game:GetService("UserInputService").TouchEnabled then
-            SliderInner.TouchStarted:Connect(function(touch)
-                if Library:MouseIsOverOpenedFrame() then return end
-                
-                local touchPos = touch.Position.X
+            SliderInner.TouchBegan:Connect(function(Input)
+                local mPos = Input.Position.X
                 local gPos = Fill.Size.X.Offset
-                local Diff = touchPos - (Fill.AbsolutePosition.X + gPos)
+                local Diff = mPos - (Fill.AbsolutePosition.X + gPos)
                 
-                local touchConnection
-                touchConnection = InputService.TouchMoved:Connect(function(touchMoved)
-                    if touchMoved.Phase == Enum.UserInputState.Change then
-                        local nTouchPos = touchMoved.Position.X
-                        local nX = math.clamp(gPos + (nTouchPos - touchPos) + Diff, 0, Slider.MaxSize)
-                        
-                        local nValue = Slider:GetValueFromXOffset(nX)
-                        local OldValue = Slider.Value
-                        Slider.Value = nValue
-                        
-                        Slider:Display()
-                        
-                        if nValue ~= OldValue then
-                            Library:SafeCallback(Slider.Callback, Slider.Value)
-                            Library:SafeCallback(Slider.Changed, Slider.Value)
-                        end
+                local Connection
+                Connection = SliderInner.TouchMoved:Connect(function(Input)
+                    local nMPos = Input.Position.X
+                    local nX = math.clamp(gPos + (nMPos - mPos) + Diff, 0, Slider.MaxSize)
+                    
+                    local nValue = Slider:GetValueFromXOffset(nX)
+                    local OldValue = Slider.Value
+                    Slider.Value = nValue
+                    
+                    Slider:Display()
+                    
+                    if nValue ~= OldValue then
+                        Library:SafeCallback(Slider.Callback, Slider.Value)
+                        Library:SafeCallback(Slider.Changed, Slider.Value)
                     end
                 end)
                 
-                InputService.TouchEnded:Connect(function()
-                    touchConnection:Disconnect()
+                SliderInner.TouchEnded:Connect(function()
+                    Connection:Disconnect()
                     Library:AttemptSave()
                 end)
             end)
+            
+            -- Dokunma alanını genişletelim
+            local TouchArea = Library:Create('Frame', {
+                BackgroundTransparency = 1;
+                Size = UDim2.new(1, 0, 1, 0);
+                ZIndex = 10;
+                Parent = SliderInner;
+            })
         end
-        
+
         Slider:Display();
         Groupbox:AddBlank(Info.BlankSize or 6);
         Groupbox:Resize();

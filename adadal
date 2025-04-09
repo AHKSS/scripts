@@ -2864,13 +2864,13 @@ do
         function Dropdown:SetValue(Val)
             if Dropdown.Multi then
                 local nTable = {};
-
+        
                 for Value, Bool in next, Val do
                     if table.find(Dropdown.Values, Value) then
                         nTable[Value] = true
                     end;
                 end;
-
+        
                 Dropdown.Value = nTable;
             else
                 if (not Val) then
@@ -2879,9 +2879,10 @@ do
                     Dropdown.Value = Val;
                 end;
             end;
-
+        
             Dropdown:BuildDropdownList();
-
+            Dropdown:Display();
+        
             Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
             Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
         end;
@@ -2914,36 +2915,34 @@ do
         local Defaults = {}
 
         if type(Info.Default) == 'string' then
-            local Idx = table.find(Dropdown.Values, Info.Default)
-            if Idx then
-                table.insert(Defaults, Idx)
+            if table.find(Dropdown.Values, Info.Default) then
+                Dropdown.Value = Info.Default
             end
         elseif type(Info.Default) == 'table' then
             for _, Value in next, Info.Default do
-                local Idx = table.find(Dropdown.Values, Value)
-                if Idx then
-                    table.insert(Defaults, Idx)
+                if table.find(Dropdown.Values, Value) then
+                    if Info.Multi then
+                        Dropdown.Value[Value] = true
+                    else
+                        Dropdown.Value = Value
+                        break
+                    end
                 end
             end
         elseif type(Info.Default) == 'number' and Dropdown.Values[Info.Default] ~= nil then
-            table.insert(Defaults, Info.Default)
+            Dropdown.Value = Dropdown.Values[Info.Default]
         end
 
-        if next(Defaults) then
-            for i = 1, #Defaults do
-                local Index = Defaults[i]
-                if Info.Multi then
-                    Dropdown.Value[Dropdown.Values[Index]] = true
-                else
-                    Dropdown.Value = Dropdown.Values[Index];
-                end
-
-                if (not Info.Multi) then break end
-            end
-
-            Dropdown:BuildDropdownList();
-            Dropdown:Display();
+        if Dropdown.Value then
+            Dropdown:BuildDropdownList()
+            Dropdown:Display()
+            
+            -- Call callbacks with the default value
+            Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+            Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
         end
+        -- LANA DEL REY
+       
 
         Groupbox:AddBlank(Info.BlankSize or 5);
         Groupbox:Resize();

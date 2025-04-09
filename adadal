@@ -2700,45 +2700,6 @@ do
                     Parent = Button;
                 });
 
-                ButtonLabel.InputBegan:Connect(function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-                        local Try = not Selected;
-                
-                        if Dropdown:GetActiveValues() == 1 and (not Try) and (not Info.AllowNull) then
-                        else
-                            if Info.Multi then
-                                Selected = Try;
-                
-                                if Selected then
-                                    Dropdown.Value[Value] = true;
-                                else
-                                    Dropdown.Value[Value] = nil;
-                                end;
-                            else
-                                Selected = Try;
-                
-                                if Selected then
-                                    Dropdown.Value = Value;
-                                else
-                                    Dropdown.Value = nil;
-                                end;
-                
-                                for _, OtherButton in next, Buttons do
-                                    OtherButton:UpdateButton();
-                                end;
-                            end;
-                
-                            Table:UpdateButton();
-                            Dropdown:Display();
-                
-                            Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
-                            Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
-                
-                            Library:AttemptSave();
-                        end;
-                    end;
-                end);
-
                 Library:OnHighlight(Button, Button,
                     { BorderColor3 = 'AccentColor', ZIndex = 24 },
                     { BorderColor3 = 'OutlineColor', ZIndex = 23 }
@@ -2763,42 +2724,55 @@ do
                     Library.RegistryMap[ButtonLabel].Properties.TextColor3 = Selected and 'AccentColor' or 'FontColor';
                 end;
 
-                ButtonLabel.InputBegan:Connect(function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        local Try = not Selected;
+                -- Combined input handler for both mouse and touch
+                local function handleSelection(inputType)
+                    local Try = not Selected;
 
-                        if Dropdown:GetActiveValues() == 1 and (not Try) and (not Info.AllowNull) then
+                    if Dropdown:GetActiveValues() == 1 and (not Try) and (not Info.AllowNull) then
+                        return; -- Don't allow deselection if we only have one value and null is not allowed
+                    end
+
+                    if Info.Multi then
+                        Selected = Try;
+
+                        if Selected then
+                            Dropdown.Value[Value] = true;
                         else
-                            if Info.Multi then
-                                Selected = Try;
-
-                                if Selected then
-                                    Dropdown.Value[Value] = true;
-                                else
-                                    Dropdown.Value[Value] = nil;
-                                end;
-                            else
-                                Selected = Try;
-
-                                if Selected then
-                                    Dropdown.Value = Value;
-                                else
-                                    Dropdown.Value = nil;
-                                end;
-
-                                for _, OtherButton in next, Buttons do
-                                    OtherButton:UpdateButton();
-                                end;
-                            end;
-
-                            Table:UpdateButton();
-                            Dropdown:Display();
-
-                            Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
-                            Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
-
-                            Library:AttemptSave();
+                            Dropdown.Value[Value] = nil;
                         end;
+                    else
+                        Selected = Try;
+
+                        if Selected then
+                            Dropdown.Value = Value;
+                        else
+                            Dropdown.Value = nil;
+                        end;
+
+                        for _, OtherButton in next, Buttons do
+                            OtherButton:UpdateButton();
+                        end;
+                    end;
+
+                    Table:UpdateButton();
+                    Dropdown:Display();
+
+                    Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
+                    Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
+
+                    Library:AttemptSave();
+                end
+
+                -- Handle both mouse and touch inputs with a single handler
+                ButtonLabel.InputBegan:Connect(function(Input)
+                    if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) then
+                        handleSelection(Input.UserInputType);
+                    end;
+                end);
+
+                Button.InputBegan:Connect(function(Input)
+                    if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) then
+                        handleSelection(Input.UserInputType);
                     end;
                 end);
 
@@ -2813,6 +2787,48 @@ do
             local Y = math.clamp(Count * 20, 0, MAX_DROPDOWN_ITEMS * 20) + 1;
             RecalculateListSize(Y);
         end;
+
+        function Dropdown:OpenDropdown()
+            ListOuter.Visible = true;
+            Library.OpenedFrames[ListOuter] = true;
+            DropdownArrow.Rotation = 180;
+        end;
+
+        function Dropdown:CloseDropdown()
+            ListOuter.Visible = false;
+            Library.OpenedFrames[ListOuter] = nil;
+            DropdownArrow.Rotation = 0;
+        end;
+
+        function Dropdown:OnChanged(Func)
+            Dropdown.Changed = Func;
+            Func(Dropdown.Value);
+        end;
+
+        -- Combined handler for dropdown toggle (mouse and touch)
+        DropdownOuter.InputBegan:Connect(function(Input)
+            if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) and not Library:MouseIsOverOpenedFrame() then
+                if ListOuter.Visible then
+                    Dropdown:CloseDropdown();
+                else
+                    Dropdown:OpenDropdown();
+                end;
+            end;
+        end);
+
+        -- Combined handler for clicking outside the dropdown (mouse and touch)
+        InputService.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+                local AbsPos, AbsSize = ListOuter.AbsolutePosition, ListOuter.AbsoluteSize;
+                local inputPosition = Input.Position or Vector2.new(Mouse.X, Mouse.Y);
+                
+                if inputPosition.X < AbsPos.X or inputPosition.X > AbsPos.X + AbsSize.X
+                    or inputPosition.Y < (AbsPos.Y - 20 - 1) or inputPosition.Y > AbsPos.Y + AbsSize.Y then
+                    
+                    Dropdown:CloseDropdown();
+                end;
+            end;
+        end);
 
         function Dropdown:SetValues(NewValues)
             if NewValues then
@@ -2838,7 +2854,7 @@ do
             Dropdown.Changed = Func;
             Func(Dropdown.Value);
         end;
-        -- NIGGER
+
         DropdownOuter.InputBegan:Connect(function(Input)
             if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) and not Library:MouseIsOverOpenedFrame() then
                 if ListOuter.Visible then

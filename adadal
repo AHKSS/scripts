@@ -2864,13 +2864,13 @@ do
         function Dropdown:SetValue(Val)
             if Dropdown.Multi then
                 local nTable = {};
-        
+
                 for Value, Bool in next, Val do
                     if table.find(Dropdown.Values, Value) then
                         nTable[Value] = true
                     end;
                 end;
-        
+
                 Dropdown.Value = nTable;
             else
                 if (not Val) then
@@ -2879,10 +2879,9 @@ do
                     Dropdown.Value = Val;
                 end;
             end;
-        
+
             Dropdown:BuildDropdownList();
-            Dropdown:Display();
-        
+
             Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
             Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
         end;
@@ -2915,38 +2914,36 @@ do
         local Defaults = {}
 
         if type(Info.Default) == 'string' then
-            if table.find(Dropdown.Values, Info.Default) then
-                Dropdown.Value = Info.Default
+            local Idx = table.find(Dropdown.Values, Info.Default)
+            if Idx then
+                table.insert(Defaults, Idx)
             end
         elseif type(Info.Default) == 'table' then
             for _, Value in next, Info.Default do
-                if table.find(Dropdown.Values, Value) then
-                    if Info.Multi then
-                        Dropdown.Value[Value] = true
-                    else
-                        Dropdown.Value = Value
-                        break
-                    end
+                local Idx = table.find(Dropdown.Values, Value)
+                if Idx then
+                    table.insert(Defaults, Idx)
                 end
             end
         elseif type(Info.Default) == 'number' and Dropdown.Values[Info.Default] ~= nil then
-            Dropdown.Value = Dropdown.Values[Info.Default]
+            table.insert(Defaults, Info.Default)
         end
 
-        if Dropdown.Value then
-            Dropdown:BuildDropdownList()
-            Dropdown:Display()
-            
-            -- Call callbacks with the default value
-            Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-            
-            -- Check if Value is a table before calling Changed callback
-            if type(Dropdown.Value) == 'table' or not Dropdown.Multi then
-                Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+        if next(Defaults) then
+            for i = 1, #Defaults do
+                local Index = Defaults[i]
+                if Info.Multi then
+                    Dropdown.Value[Dropdown.Values[Index]] = true
+                else
+                    Dropdown.Value = Dropdown.Values[Index];
+                end
+
+                if (not Info.Multi) then break end
             end
-        end
 
-        -- LAZ ALİ
+            Dropdown:BuildDropdownList();
+            Dropdown:Display();
+        end
 
         Groupbox:AddBlank(Info.BlankSize or 5);
         Groupbox:Resize();

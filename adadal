@@ -2029,19 +2029,22 @@ do
             Parent = ToggleLabel;
         });
 
+        -- Tüm toggle alanını kapsayan bir dokunma alanı oluşturalım
+        local TouchArea = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, 225, 0, 20); -- Yüksekliği sabit bir değer olarak ayarlayalım
+            Position = UDim2.new(0, 0, 0, 0);
+            ZIndex = 7;
+            Parent = Container;
+        });
+
+        -- TouchArea'yı ToggleOuter ile aynı pozisyona getir
+        TouchArea.Position = UDim2.fromOffset(ToggleOuter.Position.X.Offset, ToggleOuter.Position.Y.Offset);
+
         local ToggleRegion = Library:Create('Frame', {
             BackgroundTransparency = 1;
             Size = UDim2.new(0, 170, 1, 0);
             ZIndex = 8;
-            Parent = ToggleOuter;
-        });
-
-        -- Mobil için dokunma alanını genişletelim
-        local TouchArea = Library:Create('Frame', {
-            BackgroundTransparency = 1;
-            Size = UDim2.new(1, 225, 1, 0); -- Genişletilmiş dokunma alanı
-            Position = UDim2.new(0, 0, 0, 0);
-            ZIndex = 7;
             Parent = ToggleOuter;
         });
 
@@ -2099,12 +2102,8 @@ do
             end
         end
 
-        -- Tüm dokunma alanları için aynı işleyiciyi kullanıyoruz
+        -- Sadece TouchArea için dokunma olayını bağlayalım
         TouchArea.InputBegan:Connect(HandleToggleTouch);
-        ToggleRegion.InputBegan:Connect(HandleToggleTouch);
-        ToggleOuter.InputBegan:Connect(HandleToggleTouch);
-        ToggleInner.InputBegan:Connect(HandleToggleTouch);
-        ToggleLabel.InputBegan:Connect(HandleToggleTouch);
 
         -- Mobil cihazlar için özel dokunma olayı
         if game:GetService("UserInputService").TouchEnabled then
@@ -2126,6 +2125,7 @@ do
 
         Toggle.TextLabel = ToggleLabel;
         Toggle.Container = Container;
+        Toggle.TouchArea = TouchArea; -- TouchArea'yı Toggle nesnesine ekleyelim
         setmetatable(Toggle, BaseAddons);
 
         Toggles[Idx] = Toggle;

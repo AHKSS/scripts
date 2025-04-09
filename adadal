@@ -2724,7 +2724,7 @@ do
                     Library.RegistryMap[ButtonLabel].Properties.TextColor3 = Selected and 'AccentColor' or 'FontColor';
                 end;
 
-                -- Combined input handler for both mouse and touch
+                -- SELAM BEN ADAL
                 local function handleSelection(inputType)
                     local Try = not Selected;
 
@@ -2775,7 +2775,6 @@ do
                         handleSelection(Input.UserInputType);
                     end;
                 end);
-
                 Table:UpdateButton();
                 Dropdown:Display();
 

@@ -2388,8 +2388,10 @@ do
             end;
         end);
 
-        -- Mobil cihazlar için dokunma desteği / MORITZ
+        -- Mobil cihazlar için dokunma desteği / LENNARD
         if game:GetService("UserInputService").TouchEnabled then
+            local UserInputService = game:GetService("UserInputService")
+            
             local function UpdateSliderFromTouch(touchPosition)
                 local relativeX = touchPosition.X - SliderOuter.AbsolutePosition.X
                 local nX = math.clamp(relativeX, 0, Slider.MaxSize)
@@ -2406,21 +2408,34 @@ do
                 end
             end
             
-            SliderInner.TouchLongPress:Connect(function(touchPositions, state)
-                UpdateSliderFromTouch(touchPositions[1])
-            end)
+            local touchConnection
+            local touchMovedConnection
+            local touchEndedConnection
             
-            SliderInner.TouchMoved:Connect(function(touch, gameProcessedEvent)
-                if not gameProcessedEvent then
-                    UpdateSliderFromTouch(touch.Position)
+            SliderInner.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Touch then
+                    UpdateSliderFromTouch(input.Position)
+                    
+                    -- Önceki bağlantıları temizle
+                    if touchMovedConnection then touchMovedConnection:Disconnect() end
+                    if touchEndedConnection then touchEndedConnection:Disconnect() end
+                    
+                    -- Dokunma hareketi için bağlantı oluştur
+                    touchMovedConnection = UserInputService.TouchMoved:Connect(function(touch, gameProcessedEvent)
+                        if not gameProcessedEvent then
+                            UpdateSliderFromTouch(touch.Position)
+                        end
+                    end)
+                    
+                    -- Dokunma bittiğinde bağlantı oluştur
+                    touchEndedConnection = UserInputService.TouchEnded:Connect(function(touch, gameProcessedEvent)
+                        touchMovedConnection:Disconnect()
+                        touchEndedConnection:Disconnect()
+                        Library:AttemptSave()
+                    end)
                 end
             end)
-            
-            SliderInner.TouchEnded:Connect(function(touch, gameProcessedEvent)
-                Library:AttemptSave()
-            end)
         end
-
         Slider:Display();
         Groupbox:AddBlank(Info.BlankSize or 6);
         Groupbox:Resize();

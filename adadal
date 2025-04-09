@@ -1656,13 +1656,14 @@ do
                     return false
                 end
 
-                if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then
+                if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then
                     return false
                 end
 
                 return true
             end
 
+            -- Fare tıklaması için olay
             Button.Outer.InputBegan:Connect(function(Input)
                 if not ValidateClick(Input) then return end
                 if Button.Locked then return end
@@ -1693,6 +1694,68 @@ do
 
                 Library:SafeCallback(Button.Func);
             end)
+
+            -- Mobil cihazlar için dokunma olayı
+            if game:GetService("UserInputService").TouchEnabled then
+                Button.Outer.TouchTap:Connect(function()
+                    if Button.Locked then return end
+
+                    if Button.DoubleClick then
+                        Library:RemoveFromRegistry(Button.Label)
+                        Library:AddToRegistry(Button.Label, { TextColor3 = 'AccentColor' })
+
+                        Button.Label.TextColor3 = Library.AccentColor
+                        Button.Label.Text = 'Are you sure?'
+                        Button.Locked = true
+
+                        -- Mobil için çift tıklama mantığı
+                        local doubleTapBindable = Instance.new('BindableEvent')
+                        local touchConnection
+                        
+                        touchConnection = Button.Outer.TouchTap:Connect(function()
+                            doubleTapBindable:Fire(true)
+                            touchConnection:Disconnect()
+                        end)
+                        
+                        task.delay(0.5, function()
+                            if touchConnection.Connected then
+                                touchConnection:Disconnect()
+                                doubleTapBindable:Fire(false)
+                            end
+                        end)
+                        
+                        local doubleClicked = doubleTapBindable.Event:Wait()
+
+                        Library:RemoveFromRegistry(Button.Label)
+                        Library:AddToRegistry(Button.Label, { TextColor3 = 'FontColor' })
+
+                        Button.Label.TextColor3 = Library.FontColor
+                        Button.Label.Text = Button.Text
+                        task.defer(rawset, Button, 'Locked', false)
+
+                        if doubleClicked then
+                            Library:SafeCallback(Button.Func)
+                        end
+
+                        return
+                    end
+
+                    Library:SafeCallback(Button.Func);
+                end)
+                
+                -- Dokunma alanını genişletelim
+                local TouchArea = Library:Create('Frame', {
+                    BackgroundTransparency = 1;
+                    Size = UDim2.new(1, 0, 1, 0);
+                    ZIndex = 7;
+                    Parent = Button.Outer;
+                });
+                
+                TouchArea.TouchTap:Connect(function()
+                    if Button.Locked then return end
+                    Library:SafeCallback(Button.Func);
+                end);
+            end
         end
 
         Button.Outer, Button.Inner, Button.Label = CreateBaseButton(Button)

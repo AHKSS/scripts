@@ -2652,6 +2652,45 @@ do
                     Parent = Button;
                 });
 
+                ButtonLabel.InputBegan:Connect(function(Input)
+                    if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+                        local Try = not Selected;
+                
+                        if Dropdown:GetActiveValues() == 1 and (not Try) and (not Info.AllowNull) then
+                        else
+                            if Info.Multi then
+                                Selected = Try;
+                
+                                if Selected then
+                                    Dropdown.Value[Value] = true;
+                                else
+                                    Dropdown.Value[Value] = nil;
+                                end;
+                            else
+                                Selected = Try;
+                
+                                if Selected then
+                                    Dropdown.Value = Value;
+                                else
+                                    Dropdown.Value = nil;
+                                end;
+                
+                                for _, OtherButton in next, Buttons do
+                                    OtherButton:UpdateButton();
+                                end;
+                            end;
+                
+                            Table:UpdateButton();
+                            Dropdown:Display();
+                
+                            Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
+                            Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
+                
+                            Library:AttemptSave();
+                        end;
+                    end;
+                end);
+
                 Library:OnHighlight(Button, Button,
                     { BorderColor3 = 'AccentColor', ZIndex = 24 },
                     { BorderColor3 = 'OutlineColor', ZIndex = 23 }
@@ -2676,7 +2715,6 @@ do
                     Library.RegistryMap[ButtonLabel].Properties.TextColor3 = Selected and 'AccentColor' or 'FontColor';
                 end;
 
-                -- Fare tıklaması için olay
                 ButtonLabel.InputBegan:Connect(function(Input)
                     if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                         local Try = not Selected;
@@ -2710,207 +2748,163 @@ do
 
                             Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
                             Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
+
                             Library:AttemptSave();
-                        end
-                    end
+                        end;
+                    end;
                 end);
 
-                -- Mobil cihazlar için dokunma olayı ekleme
-                ButtonLabel.InputBegan:Connect(function(Input)
-                    if Input.UserInputType == Enum.UserInputType.Touch then
-                        local Try = not Selected;
-
-                        if Dropdown:GetActiveValues() == 1 and (not Try) and (not Info.AllowNull) then
-                        else
-                            if Info.Multi then
-                                Selected = Try;
-
-                                if Selected then
-                                    Dropdown.Value[Value] = true;
-                                else
-                                    Dropdown.Value[Value] = nil;
-                                end;
-                            else
-                                Selected = Try;
-
-                                if Selected then
-                                    Dropdown.Value = Value;
-                                else
-                                    Dropdown.Value = nil;
-                                end;
-
-                                for _, OtherButton in next, Buttons do
-                                    OtherButton:UpdateButton();
-                                end;
-                            end;
-
-                            Table:UpdateButton();
-                            Dropdown:Display();
-
-                            Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
-                            Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
-                            Library:AttemptSave();
-                        end
-                    end
-                end);
-
-                Table.UpdateButton = UpdateButton;
                 Table:UpdateButton();
-                Buttons[#Buttons + 1] = Table;
-
-                return Table;
-            end;
-
-            function Dropdown:SetValues(NewValues)
-                if NewValues then
-                    Dropdown.Values = NewValues;
-                end;
-
-                for _, Button in next, Buttons do
-                    Button.Instance:Destroy();
-                end;
-
-                table.clear(Buttons);
-                local ButtonList = {};
-
-                for Value, Bool in next, (Dropdown.Value or {}) do
-                    if (Dropdown.Multi) then
-                        local Found = false;
-
-                        for _, BValue in next, Dropdown.Values do
-                            if BValue == Value then
-                                Found = true;
-                            end;
-                        end;
-
-                        if (not Found) then
-                            Dropdown.Value[Value] = nil;
-                        end;
-                    else
-                        if Value ~= nil then
-                            local Found = false;
-
-                            for _, BValue in next, Dropdown.Values do
-                                if BValue == Value then
-                                    Found = true;
-                                end;
-                            end;
-
-                            if (not Found) then
-                                Dropdown.Value = nil;
-                            end;
-                        end
-                    end;
-                end;
-
-                for _, Value in next, Dropdown.Values do
-                    ButtonList[#ButtonList + 1] = Dropdown:AddValue(Value);
-                end;
-
                 Dropdown:Display();
 
-                local Y = 0;
-                for _, Button in next, Buttons do
-                    Button.Instance.Position = UDim2.new(0, 0, 0, Y);
-                    Y = Y + 20;
-                end;
-
-                Scrolling.CanvasSize = UDim2.fromOffset(0, (Y > (MAX_DROPDOWN_ITEMS * 20)) and Y or 0);
-                RecalculateListSize((Y > (MAX_DROPDOWN_ITEMS * 20)) and (MAX_DROPDOWN_ITEMS * 20) or Y);
+                Buttons[Button] = Table;
             end;
 
-            function Dropdown:OpenDropdown()
-                ListOuter.Visible = true;
-                Library.OpenedFrames[#Library.OpenedFrames + 1] = ListOuter;
+            Scrolling.CanvasSize = UDim2.fromOffset(0, (Count * 20) + 1);
+
+            local Y = math.clamp(Count * 20, 0, MAX_DROPDOWN_ITEMS * 20) + 1;
+            RecalculateListSize(Y);
+        end;
+
+        function Dropdown:SetValues(NewValues)
+            if NewValues then
+                Dropdown.Values = NewValues;
             end;
 
-            function Dropdown:CloseDropdown()
-                for _, Instance in next, Library.OpenedFrames do
-                    if Instance == ListOuter then
-                        table.remove(Library.OpenedFrames, table.find(Library.OpenedFrames, Instance));
-                        break;
-                    end;
-                end;
+            Dropdown:BuildDropdownList();
+        end;
 
-                ListOuter.Visible = false;
-            end;
+        function Dropdown:OpenDropdown()
+            ListOuter.Visible = true;
+            Library.OpenedFrames[ListOuter] = true;
+            DropdownArrow.Rotation = 180;
+        end;
 
-            function Dropdown:OnChanged(Func)
-                Dropdown.Changed = Func;
-                Func(Dropdown.Value);
-            end;
+        function Dropdown:CloseDropdown()
+            ListOuter.Visible = false;
+            Library.OpenedFrames[ListOuter] = nil;
+            DropdownArrow.Rotation = 0;
+        end;
 
-            function Dropdown:SetValue(Val)
-                if Dropdown.Multi then
-                    local nTable = {};
-
-                    for Value, Bool in next, Val do
-                        if Bool then
-                            nTable[Value] = true;
-                        end;
-                    end;
-
-                    Dropdown.Value = nTable;
+        function Dropdown:OnChanged(Func)
+            Dropdown.Changed = Func;
+            Func(Dropdown.Value);
+        end;
+        -- NIGGER
+        DropdownOuter.InputBegan:Connect(function(Input)
+            if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) and not Library:MouseIsOverOpenedFrame() then
+                if ListOuter.Visible then
+                    Dropdown:CloseDropdown();
                 else
-                    if Val ~= nil then
-                        Dropdown.Value = Val;
+                    Dropdown:OpenDropdown();
+                end;
+            end;
+        end);
+
+        InputService.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+                local AbsPos, AbsSize = ListOuter.AbsolutePosition, ListOuter.AbsoluteSize;
+        
+                if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X
+                    or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y then
+        
+                    Dropdown:CloseDropdown();
+                end;
+            end;
+        end);
+
+        function Dropdown:SetValue(Val)
+            if Dropdown.Multi then
+                local nTable = {};
+
+                for Value, Bool in next, Val do
+                    if table.find(Dropdown.Values, Value) then
+                        nTable[Value] = true
                     end;
                 end;
 
-                Dropdown:Display();
-
-                for _, Button in next, Buttons do
-                    Button:UpdateButton();
+                Dropdown.Value = nTable;
+            else
+                if (not Val) then
+                    Dropdown.Value = nil;
+                elseif table.find(Dropdown.Values, Val) then
+                    Dropdown.Value = Val;
                 end;
             end;
 
-            DropdownOuter.InputBegan:Connect(function(Input)
-                if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) and not Library:MouseIsOverOpenedFrame() then
-                    if ListOuter.Visible then
-                        Dropdown:CloseDropdown();
-                    else
-                        Dropdown:OpenDropdown();
-                    end;
+            Dropdown:BuildDropdownList();
+
+            Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
+            Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
+        end;
+
+        DropdownOuter.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
+                if ListOuter.Visible then
+                    Dropdown:CloseDropdown();
+                else
+                    Dropdown:OpenDropdown();
                 end;
-            end);
-
-            InputService.InputBegan:Connect(function(Input)
-                if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-                    local AbsPos, AbsSize = ListOuter.AbsolutePosition, ListOuter.AbsoluteSize;
-
-                    if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X
-                        or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y then
-
-                        Dropdown:CloseDropdown();
-                    end;
-                end;
-            end);
-
-            Dropdown:SetValues();
-            Dropdown:Display();
-
-            if type(Info.Default) == 'string' then
-                Dropdown:SetValue(Info.Default);
-            elseif type(Info.Default) == 'table' then
-                local Tbl = {};
-
-                for _, Value in next, Info.Default do
-                    Tbl[Value] = true;
-                end;
-
-                Dropdown:SetValue(Tbl);
-            elseif type(Info.Default) == 'boolean' and Info.Default then
-                Dropdown:SetValue(Dropdown.Values[1]);
             end;
+        end);
 
-            Groupbox:AddBlank(Info.BlankSize or 5);
-            Groupbox:Resize();
+        InputService.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local AbsPos, AbsSize = ListOuter.AbsolutePosition, ListOuter.AbsoluteSize;
 
-            Options[Idx] = Dropdown;
+                if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X
+                    or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y then
 
-            return Dropdown;
+                    Dropdown:CloseDropdown();
+                end;
+            end;
+        end);
+
+        Dropdown:BuildDropdownList();
+        Dropdown:Display();
+
+        local Defaults = {}
+
+        if type(Info.Default) == 'string' then
+            local Idx = table.find(Dropdown.Values, Info.Default)
+            if Idx then
+                table.insert(Defaults, Idx)
+            end
+        elseif type(Info.Default) == 'table' then
+            for _, Value in next, Info.Default do
+                local Idx = table.find(Dropdown.Values, Value)
+                if Idx then
+                    table.insert(Defaults, Idx)
+                end
+            end
+        elseif type(Info.Default) == 'number' and Dropdown.Values[Info.Default] ~= nil then
+            table.insert(Defaults, Info.Default)
         end
+
+        if next(Defaults) then
+            for i = 1, #Defaults do
+                local Index = Defaults[i]
+                if Info.Multi then
+                    Dropdown.Value[Dropdown.Values[Index]] = true
+                else
+                    Dropdown.Value = Dropdown.Values[Index];
+                end
+
+                if (not Info.Multi) then break end
+            end
+
+            Dropdown:BuildDropdownList();
+            Dropdown:Display();
+        end
+
+        Groupbox:AddBlank(Info.BlankSize or 5);
+        Groupbox:Resize();
+
+        Options[Idx] = Dropdown;
+
+        return Dropdown;
     end;
+
     function Funcs:AddDependencyBox()
         local Depbox = {
             Dependencies = {};

@@ -2388,7 +2388,38 @@ do
             end;
         end);
 
-        -- Mobil cihazlar için dokunma desteği
+        -- Mobil cihazlar için dokunma desteği / MORITZ
+        if game:GetService("UserInputService").TouchEnabled then
+            local function UpdateSliderFromTouch(touchPosition)
+                local relativeX = touchPosition.X - SliderOuter.AbsolutePosition.X
+                local nX = math.clamp(relativeX, 0, Slider.MaxSize)
+                
+                local nValue = Slider:GetValueFromXOffset(nX)
+                local OldValue = Slider.Value
+                Slider.Value = nValue
+                
+                Slider:Display()
+                
+                if nValue ~= OldValue then
+                    Library:SafeCallback(Slider.Callback, Slider.Value)
+                    Library:SafeCallback(Slider.Changed, Slider.Value)
+                end
+            end
+            
+            SliderInner.TouchLongPress:Connect(function(touchPositions, state)
+                UpdateSliderFromTouch(touchPositions[1])
+            end)
+            
+            SliderInner.TouchMoved:Connect(function(touch, gameProcessedEvent)
+                if not gameProcessedEvent then
+                    UpdateSliderFromTouch(touch.Position)
+                end
+            end)
+            
+            SliderInner.TouchEnded:Connect(function(touch, gameProcessedEvent)
+                Library:AttemptSave()
+            end)
+        end
 
         Slider:Display();
         Groupbox:AddBlank(Info.BlankSize or 6);

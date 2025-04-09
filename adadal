@@ -2727,14 +2727,14 @@ do
                 -- SELAM BEN ADAL
                 local function handleSelection(inputType)
                     local Try = not Selected;
-
+                
                     if Dropdown:GetActiveValues() == 1 and (not Try) and (not Info.AllowNull) then
                         return; -- Don't allow deselection if we only have one value and null is not allowed
                     end
-
+                
                     if Info.Multi then
                         Selected = Try;
-
+                
                         if Selected then
                             Dropdown.Value[Value] = true;
                         else
@@ -2742,39 +2742,40 @@ do
                         end;
                     else
                         Selected = Try;
-
+                
                         if Selected then
                             Dropdown.Value = Value;
                         else
                             Dropdown.Value = nil;
                         end;
-
+                
                         for _, OtherButton in next, Buttons do
                             OtherButton:UpdateButton();
                         end;
                     end;
-
+                
                     Table:UpdateButton();
                     Dropdown:Display();
-
+                
                     Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
                     Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
-
+                
                     Library:AttemptSave();
                 end
-
-                -- Handle both mouse and touch inputs with a single handler
+                
+                -- Hem fare hem de dokunma girişlerini tek bir işleyicide birleştir
                 ButtonLabel.InputBegan:Connect(function(Input)
                     if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) then
                         handleSelection(Input.UserInputType);
                     end;
                 end);
-
+                
                 Button.InputBegan:Connect(function(Input)
                     if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) then
                         handleSelection(Input.UserInputType);
                     end;
                 end);
+
                 Table:UpdateButton();
                 Dropdown:Display();
 

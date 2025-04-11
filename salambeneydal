@@ -3457,16 +3457,29 @@ function Library:CreateWindow(...)
             end);
         end;
 
+        for Frame, _ in next, Library.OpenedFrames do
+            Frame.Visible = false
+        end
+        Library.OpenedFrames = {}        
+
+
+        -- FREY MUA
         function Tab:ShowTab()
+            for Frame, _ in next, Library.OpenedFrames do
+                Frame.Visible = false
+            end
+            Library.OpenedFrames = {}
+        
             for _, Tab in next, Window.Tabs do
                 Tab:HideTab();
             end;
-
+        
             Blocker.BackgroundTransparency = 0;
             TabButton.BackgroundColor3 = Library.MainColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
             TabFrame.Visible = true;
         end;
+        
 
         function Tab:HideTab()
             Blocker.BackgroundTransparency = 1;

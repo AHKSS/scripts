@@ -2614,8 +2614,11 @@ do
         });
 
         Scrolling.ScrollingEnabled = true
+        Scrolling.CanvasSize = UDim2.fromOffset(0, Count * 20 + 1) -- bu zaten var
+        Scrolling.AutomaticCanvasSize = Enum.AutomaticSize.None
         Scrolling.ClipsDescendants = true
         ListInner.ClipsDescendants = true
+        
         -- ORYON OZER
         local isTouching = false
         local lastTouchPos

@@ -2616,6 +2616,32 @@ do
         Scrolling.ScrollingEnabled = true
         Scrolling.ClipsDescendants = true
         ListInner.ClipsDescendants = true
+        -- ORYON OZER
+        local isTouching = false
+        local lastTouchPos
+
+        Scrolling.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                isTouching = true
+                lastTouchPos = input.Position
+            end
+        end)
+        
+        Scrolling.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch and isTouching and lastTouchPos then
+                local delta = input.Position - lastTouchPos
+                lastTouchPos = input.Position
+                Scrolling.CanvasPosition = Scrolling.CanvasPosition - Vector2.new(0, delta.Y)
+            end
+        end)
+        
+        Scrolling.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                isTouching = false
+                lastTouchPos = nil
+            end
+        end)
+        
 
 
         Library:AddToRegistry(Scrolling, {

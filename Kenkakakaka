@@ -1,0 +1,664 @@
+local Luna = loadstring(game:HttpGet("https://raw.githubusercontent.com/AHKSS/scripts/refs/heads/main/Loblanc", true))()
+
+
+getgenv().Settings = {
+    AutoBubble = false,
+    AutoSave = false,
+    AutoSaveTimeInterval = 1,
+    SliderValue = 50,
+    SelectedOption = "Option 1",
+    SelectedTheme = "Default",
+    WalkSpeed = 16,
+    JumpPower = 50,
+    LoadingAnimation = false,
+}
+
+local Themes = {
+    Default = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(117, 164, 206)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(123, 201, 201)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(224, 138, 175))
+    },
+    Dark = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(30, 30, 30)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(50, 50, 50)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(70, 70, 70))
+    },
+    Light = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(245, 245, 245)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(225, 225, 225)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(200, 200, 200))
+    },
+    Mocha = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(134, 94, 79)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(157, 109, 90)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(179, 127, 103))
+    },
+    Aqua = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 255, 255)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 204, 204)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 153, 153))
+    },
+    Neon = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(120, 70, 255)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(150, 100, 255)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(180, 130, 255))
+    },
+    ["Nightlight (Classic)"] = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(25, 25, 112)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(45, 45, 150)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(65, 65, 190))
+    },
+    ["Nightlight (Neo)"] = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(20, 20, 80)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(60, 20, 120)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(100, 30, 160))
+    },
+    Starlight = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(25, 25, 75)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(40, 40, 120)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(70, 70, 180))
+    },
+    Solar = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 140, 0)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 165, 0)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 190, 0))
+    },
+    Sparkle = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 215, 0)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(240, 230, 140)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 255, 224))
+    },
+    Lime = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(50, 205, 50)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(124, 252, 0)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(173, 255, 47))
+    },
+    Vine = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 139, 34)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(46, 139, 87)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(60, 179, 113))
+    },
+    Cherry = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(220, 20, 60)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 0, 0)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(178, 34, 34))
+    },
+    Daylight = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(135, 206, 250)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(176, 224, 230)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(240, 248, 255))
+    },
+    Blossom = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 182, 193)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 192, 203)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 228, 225))
+    },
+    Sunset = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 99, 71)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 127, 80)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 160, 122))
+    },
+    Ocean = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 105, 148)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 154, 208)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(65, 182, 230))
+    },
+    Forest = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 85, 34)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(46, 120, 50)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(60, 145, 70))
+    },
+    Lavender = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(147, 112, 219)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(153, 122, 235)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(160, 130, 255))
+    },
+    Amethyst = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(102, 51, 153)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(123, 62, 180)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(147, 75, 210))
+    },
+    Ruby = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(155, 17, 30)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(185, 20, 40)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(215, 25, 50))
+    },
+    Sapphire = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(15, 82, 186)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(20, 103, 210)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(30, 144, 255))
+    },
+    Emerald = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 127, 70)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 158, 96)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 201, 124))
+    },
+}
+
+
+local function SaveSettings()
+    local HttpService = game:GetService("HttpService")
+    local placeId = game.PlaceId
+    local settingsJson = HttpService:JSONEncode({
+        Settings = getgenv().Settings,
+        PlaceId = placeId
+    })
+    
+    local success, errorMsg = pcall(function()
+        writefile("wh_settings" .. placeId .. ".json", settingsJson)
+    end)
+    
+    if success then
+        return "Settings saved successfully for game ID: " .. placeId
+    else
+        return "Failed to save settings: " .. tostring(errorMsg)
+    end
+end
+
+
+local function DeleteSettings()
+    local placeId = game.PlaceId
+    local fileName = "wh_settings" .. placeId .. ".json"
+    
+    local fileExists = pcall(function()
+        return readfile(fileName)
+    end)
+    
+    if not fileExists then
+        return "No settings file found to delete for game ID: " .. placeId
+    end
+    
+    local success, errorMsg = pcall(function()
+        delfile(fileName)
+    end)
+    
+    if success then
+        return "Settings file deleted successfully for game ID: " .. placeId
+    else
+        return "Failed to delete settings file: " .. tostring(errorMsg)
+    end
+end
+
+local function CopySettings()
+    local HttpService = game:GetService("HttpService")
+    local placeId = game.PlaceId
+    
+    local settingsData = {
+        Settings = getgenv().Settings,
+        PlaceId = placeId
+    }
+    
+    local jsonString = HttpService:JSONEncode(settingsData)
+    
+    local success, errorMsg = pcall(function()
+        setclipboard(jsonString)
+    end)
+    
+    if success then
+        return "Settings copied to clipboard successfully!"
+    else
+        return "Failed to copy settings: " .. tostring(errorMsg)
+    end
+end
+
+local function LoadSettings()
+    local HttpService = game:GetService("HttpService")
+    local placeId = game.PlaceId
+    
+    local success, content = pcall(function()
+        return readfile("wh_settings" .. placeId .. ".json")
+    end)
+    
+    if success then
+        local decoded = HttpService:JSONDecode(content)
+        
+        if decoded.Settings then
+            for key, value in pairs(decoded.Settings) do
+                getgenv().Settings[key] = value
+            end
+        end
+        
+        return "Settings loaded successfully for game ID: " .. placeId
+    else
+        return "No saved settings found or error reading file. Using defaults."
+    end
+end
+
+task.spawn(function()
+    LoadSettings()
+end)
+
+local Window = Luna:CreateWindow({
+	Name = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name, -- This Is Title Of Your Window
+	Subtitle = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name .. " Script", -- A Gray Subtitle next To the main title.
+	LogoID = "82795327169782", -- The Asset ID of your logo. Set to nil if you do not have a logo for Luna to use.
+	LoadingEnabled = getgenv().Settings.LoadingAnimation, -- Whether to enable the loading animation. Set to false if you do not want the loading screen or have your own custom one.
+	LoadingTitle = "WH HUB", -- Header for loading screen
+	LoadingSubtitle = "by William x nfpw", -- Subtitle for loading screen
+
+	ConfigSettings = {
+		RootFolder = nil,
+		ConfigFolder = "WH"
+	},
+
+	KeySystem = false, 
+	KeySettings = {
+		Title = "Luna Example Key",
+		Subtitle = "Key System",
+		Note = "Best Key System Ever! Also, Please Use A HWID Keysystem like Pelican, Luarmor etc. that provide key strings based on your HWID since putting a simple string is very easy to bypass",
+		SaveInRoot = false, -- Enabling will save the key in your RootFolder (YOU MUST HAVE ONE BEFORE ENABLING THIS OPTION)
+		SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+		Key = {"Example Key"}, -- List of keys that will be accepted by the system, please use a system like Pelican or Luarmor that provide key strings based on your HWID since putting a simple string is very easy to bypass
+		SecondAction = {
+			Enabled = true, -- Set to false if you do not want a second action,
+			Type = "Link", -- Link / Discord.
+			Parameter = "" -- If Type is Discord, then put your invite link (DO NOT PUT DISCORD.GG/). Else, put the full link of your key system here.
+		}
+	}
+})
+
+local Tab = Window:CreateTab({
+	Name = "Tab Example",
+	Icon = "view_in_ar",
+	ImageSource = "Material",
+	ShowTitle = true 
+})
+
+getgenv().SettingsTab = Window:CreateTab({
+	Name = "Settings",
+	Icon = "view_in_ar",
+	ImageSource = "Material",
+	ShowTitle = true 
+})
+
+
+
+local function LoadSettingsFrontend()
+    if getgenv().AutoClick and getgenv().Settings.AutoBubble ~= nil then
+        getgenv().AutoClick:Set({ CurrentValue = getgenv().Settings.AutoBubble })
+    end
+
+    if getgenv().LoadAnimToggle and getgenv().Settings.LoadingAnimation ~= nil then
+        getgenv().LoadAnimToggle:Set({ CurrentValue = getgenv().Settings.LoadingAnimation })
+    end
+
+    
+    if getgenv().AutoSaveTgl and getgenv().Settings.AutoSave ~= nil then
+        getgenv().AutoSaveTgl:Set({ CurrentValue = getgenv().Settings.AutoSave })
+    end
+
+
+    if getgenv().AutoSaveTimeInterval and getgenv().Settings.AutoSaveTimeInterval ~= nil then
+        getgenv().AutoSaveTimeInterval:Set({ CurrentValue = getgenv().Settings.AutoSaveTimeInterval })
+    end
+
+    if getgenv().WalkSpeedSlider and getgenv().Settings.WalkSpeed ~= nil then
+        getgenv().WalkSpeedSlider:Set({ CurrentValue = getgenv().Settings.WalkSpeed })
+    end
+
+    if getgenv().JumpPowerSlider and getgenv().Settings.JumpPower ~= nil then
+        getgenv().JumpPowerSlider:Set({ CurrentValue = getgenv().Settings.JumpPower })
+    end
+
+
+
+    if getgenv().ThemeDrapdawn and getgenv().Settings.SelectedTheme ~= nil then
+        getgenv().ThemeDrapdawn:Set({ CurrentOption = getgenv().Settings.SelectedTheme })
+    end
+
+    if getgenv().Drapdawn and getgenv().Settings.SelectedOption ~= nil then
+        getgenv().Drapdawn:Set({ CurrentOption = getgenv().Settings.SelectedOption })
+    end
+
+  --[[  if getgenv().SliderEx and getgenv().Settings.SliderValue ~= nil then
+        getgenv().SliderEx:UpdateValue(getgenv().Settings.SliderValue)
+    end --]]
+
+end
+
+Tab:CreateSection("Section Example")
+
+getgenv().SettingsTab:CreateButton({
+    Name = "Save Settings",
+    Description = nil, -- Creates A Description For Users to know what the button does (looks bad if you use it all the time),
+    Callback = function()
+        local result = SaveSettings()
+        -- Bildirim göster
+        Luna:Notification({ 
+            Title = "Ayarlar",
+            Icon = "save",
+            ImageSource = "Material",
+            Content = result
+        })
+    end
+})
+
+getgenv().SettingsTab:CreateButton({
+    Name = "Copy Settings",
+    Description = nil,
+    Callback = function()
+        local result = CopySettings()
+        -- Bildirim göster
+        Luna:Notification({ 
+            Title = "Ayarlar",
+            Icon = "content_copy",
+            ImageSource = "Material",
+            Content = result
+        })
+    end
+})
+
+getgenv().SettingsTab:CreateButton({
+    Name = "Delete Settings",
+    Description = nil,
+    Callback = function()
+        local result = DeleteSettings()
+        
+        -- Bildirim göster
+        Luna:Notification({ 
+            Title = "Ayarlar",
+            Icon = "delete",
+            ImageSource = "Material",
+            Content = result
+        })
+    end
+})
+
+getgenv().SettingsTab:CreateInput({
+    Name = "Import Settings",
+    Description = nil,
+    PlaceholderText = "Paste config here...",
+    CurrentValue = "", -- the current text
+    Numeric = false, -- When true, the user may only type numbers in the box (Example walkspeed)
+    MaxCharacters = nil, -- if a number, the textbox length cannot exceed the number
+    Enter = true, -- When true, the callback will only be executed when the user presses enter.
+    Callback = function(Text)
+        if Text == "" then
+            Luna:Notification({ 
+                Title = "Ayarlar",
+                Icon = "error",
+                ImageSource = "Material",
+                Content = "Lütfen geçerli bir ayar metni girin!"
+            })
+            return
+        end
+        
+        local success, decoded = pcall(function()
+            return game:GetService("HttpService"):JSONDecode(Text)
+        end)
+        
+        if success and decoded and decoded.Settings then
+            local currentPlaceId = game.PlaceId
+            
+            if decoded.PlaceId and decoded.PlaceId ~= currentPlaceId then
+                Luna:Notification({ 
+                    Title = "Uyarı",
+                    Icon = "warning",
+                    ImageSource = "Material",
+                    Content = "Bu ayarlar farklı bir oyun için! Yine de yüklemek istiyor musunuz?"
+                })
+            end
+            
+            -- Ayarları yükle
+            for key, value in pairs(decoded.Settings) do
+                getgenv().Settings[key] = value
+            end
+            
+            LoadSettingsFrontend()
+            
+            Luna:Notification({ 
+                Title = "Ayarlar",
+                Icon = "check_circle",
+                ImageSource = "Material",
+                Content = "Ayarlar başarıyla içe aktarıldı!"
+            })
+        else
+            Luna:Notification({ 
+                Title = "Hata",
+                Icon = "error",
+                ImageSource = "Material",
+                Content = "Geçersiz ayar formatı! Lütfen doğru bir JSON metni girin."
+            })
+        end
+    end
+}, "ImportInput")
+
+getgenv().SettingsTab:CreateSection("Other")
+
+getgenv().LoadAnimToggle = getgenv().SettingsTab:CreateToggle({
+	Name = "GUI Loading Animation",
+	Description = nil,
+	CurrentValue = false,
+    	Callback = function(Value)
+            getgenv().Settings.LoadingAnimation = Value 
+    	end
+}, "Toggle")
+
+getgenv().AutoSaveTimeInterval = getgenv().SettingsTab:CreateSlider({
+	Name = "Auto Save Cooldown",
+	Range = {1, 600}, -- The Minimum And Maximum Values Respectively
+	Increment = 1,
+	CurrentValue = 1, -- The Starting Value
+    	Callback = function(Value)
+            getgenv().Settings.AutoSaveTimeInterval = Value
+    	end
+}, "Slider") 
+
+getgenv().AutoSaveTgl = getgenv().SettingsTab:CreateToggle({
+    Name = "Auto Save Settings",
+    Description = nil,
+    CurrentValue = false,
+        Callback = function(Value)
+            getgenv().Settings.AutoSave = Value 
+            
+            if Value then
+                -- Eğer zaten çalışan bir AutoSave thread'i varsa, onu durdur
+                if getgenv().AutoSaveThread then
+                    task.cancel(getgenv().AutoSaveThread)
+                end
+                
+                -- Yeni bir AutoSave thread'i başlat
+                getgenv().AutoSaveThread = task.spawn(function()
+                    while getgenv().Settings.AutoSave do
+                        local result = SaveSettings()
+                        
+    
+                        
+                        -- Belirlenen süre kadar bekle
+                        task.wait(getgenv().Settings.AutoSaveTimeInterval)
+                    end
+                end)
+            else
+                -- AutoSave kapatıldığında thread'i durdur
+                if getgenv().AutoSaveThread then
+                    task.cancel(getgenv().AutoSaveThread)
+                    getgenv().AutoSaveThread = nil
+                end
+            end
+        end
+}, "Toggle")
+
+getgenv().SettingsTab:CreateSection("Themes")
+
+getgenv().ThemeDrapdawn = getgenv().SettingsTab:CreateDropdown({
+    Name = "Themes",
+    Description = "Select a theme to customize the UI appearance",
+    Options = {
+        "Default", "Dark", "Light", "Mocha", "Aqua", "Neon", 
+        "Nightlight (Classic)", "Nightlight (Neo)", "Starlight", 
+        "Solar", "Sparkle", "Lime", "Vine", "Cherry", 
+        "Daylight", "Blossom", "Sunset", "Ocean", "Forest",
+        "Lavender", "Amethyst", "Ruby", "Sapphire", "Emerald",
+    },
+    CurrentOption = getgenv().Settings.SelectedTheme,
+    MultipleOptions = false,
+    SpecialType = nil,
+    Callback = function(Option)
+       -- warn("Selected Theme: " .. Option)
+        getgenv().Settings.SelectedTheme = Option
+        
+        -- Apply the selected theme to Luna UI
+        if Option then
+            -- Call Luna's theme change function
+            Luna:ChangeTheme(Option)
+            
+        
+            
+            -- Save settings automatically when theme changes
+            if getgenv().Settings.AutoSave then
+                SaveSettings()
+            end
+        else
+            
+        end
+    end    
+}, "ThemeDropdown")
+
+getgenv().SettingsTab:CreateSection("Player Stuff")
+
+getgenv().WalkSpeedSlider = getgenv().SettingsTab:CreateSlider({
+    Name = "Walk Speed",
+    Range = {16, 500},
+    Increment = 1,
+    CurrentValue = getgenv().Settings.WalkSpeed or 16,
+    Callback = function(Value)
+        getgenv().Settings.WalkSpeed = Value
+        
+        -- Oyuncunun yürüme hızını ayarla
+        local player = game:GetService("Players").LocalPlayer
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.WalkSpeed = Value
+        end
+        
+        -- Karakterin yeniden oluşturulması durumunda hızı korumak için
+        player.CharacterAdded:Connect(function(character)
+            task.wait(0.5) -- Karakterin tamamen yüklenmesi için kısa bir bekleme
+            if character:FindFirstChild("Humanoid") then
+                character.Humanoid.WalkSpeed = getgenv().Settings.WalkSpeed
+            end
+        end)
+    end
+}, "WalkSpeedSlider")
+
+getgenv().JumpPowerSlider = getgenv().SettingsTab:CreateSlider({
+    Name = "Jump Power",
+    Range = {50, 500},
+    Increment = 1,
+    CurrentValue = getgenv().Settings.JumpPower or 50,
+    Callback = function(Value)
+        getgenv().Settings.JumpPower = Value
+        
+        -- Oyuncunun zıplama gücünü ayarla
+        local player = game:GetService("Players").LocalPlayer
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.JumpPower = Value
+        end
+        
+        player.CharacterAdded:Connect(function(character)
+            task.wait(0.5) -- Karakterin tamamen yüklenmesi için kısa bir bekleme
+            if character:FindFirstChild("Humanoid") then
+                character.Humanoid.JumpPower = getgenv().Settings.JumpPower
+            end
+        end)
+    end
+}, "JumpPowerSlider")
+
+
+local function GetPlayerInfo()
+    local player = game:GetService("Players").LocalPlayer
+    local accountAge = player.AccountAge
+    local membershipType = player.MembershipType.Name
+    local userId = player.UserId
+    
+    -- Hesap yaşını daha okunabilir formata çevirme
+    local years = math.floor(accountAge / 365)
+    local months = math.floor((accountAge % 365) / 30)
+    local days = accountAge % 30
+    local ageString = ""
+    
+    if years > 0 then
+        ageString = years .. " year"
+        if months > 0 then
+            ageString = ageString .. ", " .. months .. " month"
+        end
+        if days > 0 then
+            ageString = ageString .. ", " .. days .. " day"
+        end
+    elseif months > 0 then
+        ageString = months .. " month"
+        if days > 0 then
+            ageString = ageString .. ", " .. days .. " day"
+        end
+    else
+        ageString = days .. " day"
+    end
+    
+    -- Üyelik durumunu Türkçe'ye çevirme
+    local membershipTranslation = {
+        ["None"] = "Yok",
+        ["Premium"] = "Premium",
+        ["BuildersClub"] = "Builders Club",
+        ["TurboBuildersClub"] = "Turbo Builders Club",
+        ["OutrageousBuildersClub"] = "Outrageous Builders Club"
+    }
+    
+    local translatedMembership = membershipTranslation[membershipType] or membershipType
+    
+    -- Bilgileri formatlama
+    local infoText = string.format([[
+<b>Username:</b> %s
+<b>Display Name:</b> %s
+<b>User ID:</b> %s
+<b>Account Age:</b> %s (%d days)
+<b>Membership:</b> %s
+<b>Game:</b> %s
+<b>Game ID:</b> %d
+]], 
+    player.Name,
+    player.DisplayName,
+    userId,
+    ageString,
+    accountAge,
+    membershipType,
+    game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name,
+    game.PlaceId
+    )
+    
+    return infoText
+end
+
+getgenv().SettingsTab:CreateParagraph({
+	Title = "Player Stats ",
+	Text = GetPlayerInfo()
+})
+
+getgenv().AutoClick = Tab:CreateToggle({
+	Name = "Toggle Example",
+	Description = nil,
+	CurrentValue = false,
+    	Callback = function(Value)
+            getgenv().Settings.AutoBubble = Value 
+
+            if Value then
+             
+            end
+    	end
+}, "Toggle")
+
+
+getgenv().Drapdawn = Tab:CreateDropdown({
+    Name = "Dropdown Example",
+    Description = nil,
+    Options = {"Option 1", "Option 2", "Cips", "Elmas", "Altın", "Demir", "Obsidyen", "Yakut", "Zümrüt", "Safir"},
+    CurrentOption = getgenv().Settings.SelectedOption,
+    MultipleOptions = false,
+    SpecialType = nil,
+    Callback = function(Options)
+        getgenv().Settings.SelectedOption = Options
+    end
+}, "Dropdown")
+
+task.spawn(function()
+    LoadSettingsFrontend()
+end)

@@ -5870,19 +5870,18 @@ function MacLib:Demo()
     tabs.Settings:InsertConfigSection("Left")
 
     function MacLib:SetSize(scale)
-        if Window then
+        if WindowFunctions then
             -- Use the provided scale or default to 1 (no change)
             local scaleFactor = scale or 1
             
-            -- Get current size
-            local currentSize = Window:GetSize()
+            -- Tüm UI'ı ölçeklendirmek için SetScale kullanın
+            WindowFunctions:SetScale(scaleFactor)
             
-            -- Calculate new size based on scale factor
-            local newWidth = currentSize.X.Offset * scaleFactor
-            local newHeight = currentSize.Y.Offset * scaleFactor
-            
-            -- Apply the new size
-            Window:SetSize(UDim2.fromOffset(newWidth, newHeight))
+            -- Ayrıca pencere boyutunu da ayarlayabilirsiniz (isteğe bağlı)
+            -- local currentSize = WindowFunctions:GetSize()
+            -- local newWidth = currentSize.X.Offset * scaleFactor
+            -- local newHeight = currentSize.Y.Offset * scaleFactor
+            -- WindowFunctions:SetSize(UDim2.fromOffset(newWidth, newHeight))
         end
     end
     

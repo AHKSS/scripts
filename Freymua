@@ -2613,6 +2613,11 @@ do
             ScrollBarImageColor3 = Library.AccentColor,
         });
 
+        Scrolling.ScrollingEnabled = true
+        Scrolling.ClipsDescendants = true
+        ListInner.ClipsDescendants = true
+
+
         Library:AddToRegistry(Scrolling, {
             ScrollBarImageColor3 = 'AccentColor'
         })

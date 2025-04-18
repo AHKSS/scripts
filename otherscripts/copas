@@ -1,0 +1,416 @@
+getgenv().containsTargetItem = function(name)
+    local targetItems = getgenv().WebhookSettings.SendWebhookOnThisItems
+    if not (targetItems and type(targetItems) == "table" and #targetItems > 0) then
+        return string.find(string.lower(name), "chest") ~= nil
+    end
+    
+    local nameLower = string.lower(name)
+    for _, targetItem in ipairs(targetItems) do
+        local targetItemLower = string.lower(targetItem)
+        if string.find(nameLower, targetItemLower, 1, true) then
+            print("Target item found in name: " .. name .. " matches with " .. targetItem)
+            return true
+        end
+    end
+    
+    return false
+end
+
+getgenv().urls = {
+    ["EggIcon"] = "https://media.discordapp.net/attachments/1022520668736200734/1362044750152208556/eggstroke.png?ex=6800f686&is=67ffa506&hm=bd5452f5370bcd7909092e028a42deb17783f123eccf43d5debaa32826557eb5&=&format=webp&quality=lossless&width=864&height=864",
+    ["ChestIcon"] = "https://media.discordapp.net/attachments/1022520668736200734/1362044749791625246/ChestTopOnTheLandStroke.png?ex=6800f685&is=67ffa505&hm=9a272f968054a28fe62619a745e81a4b2a629f8d4f350202e1bb584723794129&=&format=webp&quality=lossless&width=864&height=864"
+}
+
+
+function SendAllWebhook()
+    getgenv().rifts = workspace.Rendered.Rifts
+    getgenv().http_request = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+    
+    getgenv().shouldSendEggWebhook = function(eggObj)
+        -- If it's not an egg, always send webhook
+        if not string.find(string.lower(eggObj.Name), "egg") then
+            return true
+        end
+        
+        -- For eggs, check the luck value
+        getgenv().luckValue = "Unknown"
+        getgenv().luckNumber = 0
+        
+        -- Try to find the luck label
+        if eggObj:FindFirstChild("Display") and 
+           eggObj.Display:FindFirstChild("SurfaceGui") and 
+           eggObj.Display.SurfaceGui:FindFirstChild("Icon") and 
+           eggObj.Display.SurfaceGui.Icon:FindFirstChild("Luck") then
+            
+            getgenv().luckLabel = eggObj.Display.SurfaceGui.Icon.Luck
+            if getgenv().luckLabel.Text then
+                getgenv().luckValue = getgenv().luckLabel.Text
+                print("Checking egg luck value: " .. getgenv().luckValue)
+                
+                -- Extract the numeric value from the luck text (assuming format like "x25")
+                getgenv().luckMatch = string.match(getgenv().luckValue, "x(%d+)")
+                if getgenv().luckMatch then
+                    getgenv().luckNumber = tonumber(getgenv().luckMatch)
+                    print("Extracted luck number: " .. getgenv().luckNumber)
+                    
+                    -- Only send webhook if luck is greater than 5
+                    if getgenv().luckNumber > 5 then
+                        print("Egg luck value > 5, will send webhook")
+                        return true
+                    else
+                        print("Egg luck value <= 5, skipping webhook")
+                        return false
+                    end
+                end
+            end
+        end
+        
+        -- If we couldn't determine the luck value, send webhook by default
+        print("Could not determine egg luck value, sending webhook by default")
+        return true
+    end
+    
+    getgenv().sendWebhook = function(chestObj, chestName, chestPosition, height)
+        -- Check if webhook sending is enabled in settings
+        if not (getgenv().WebhookSettings and getgenv().WebhookSettings.SendWebhook) then
+            print("Webhook sending is disabled in settings. Skipping webhook.")
+            return
+        end
+        
+        -- For eggs, check if the luck value is greater than x5
+        if string.find(string.lower(chestName), "egg") and not getgenv().shouldSendEggWebhook(chestObj) then
+            print("Skipping webhook for egg with luck <= x5: " .. chestName)
+            return
+        end
+        
+        getgenv().currentTime = os.time()
+
+        getgenv().waitForEggLuckValue = function(eggObj, maxWaitTime)
+            maxWaitTime = maxWaitTime or 2 -- Default to 2 seconds max wait time
+            
+            getgenv().startTime = os.time()
+            getgenv().luckValue = "Unknown"
+            getgenv().luckNumber = 0
+            
+            -- Try to get luck value with retries
+            while (os.time() - getgenv().startTime) < maxWaitTime do
+                -- Check if the luck label exists and has a value
+                if eggObj:FindFirstChild("Display") and 
+                   eggObj.Display:FindFirstChild("SurfaceGui") and 
+                   eggObj.Display.SurfaceGui:FindFirstChild("Icon") and 
+                   eggObj.Display.SurfaceGui.Icon:FindFirstChild("Luck") then
+                    
+                    getgenv().luckLabel = eggObj.Display.SurfaceGui.Icon.Luck
+                    if getgenv().luckLabel.Text and getgenv().luckLabel.Text ~= "" then
+                        getgenv().luckValue = getgenv().luckLabel.Text
+                        print("Found luck value after waiting: " .. getgenv().luckValue)
+                        
+                        -- Extract the numeric value from the luck text
+                        getgenv().luckMatch = string.match(getgenv().luckValue, "x(%d+)")
+                        if getgenv().luckMatch then
+                            getgenv().luckNumber = tonumber(getgenv().luckMatch)
+                            print("Extracted luck number: " .. getgenv().luckNumber)
+                            return getgenv().luckValue, getgenv().luckNumber
+                        end
+                    end
+
+                    if getgenv().luckLabel:FindFirstChild("ContentText") or getgenv().luckLabel.ContentText then
+                        getgenv().contentText = getgenv().luckLabel.ContentText
+                        if getgenv().contentText and getgenv().contentText ~= "" then
+                            getgenv().luckValue = getgenv().contentText
+                            print("Found luck value in ContentText property: " .. getgenv().luckValue)
+                            
+                            -- Extract the numeric value from the ContentText
+                            getgenv().luckMatch = string.match(getgenv().luckValue, "[xX](%d+)")
+                            if getgenv().luckMatch then
+                                getgenv().luckNumber = tonumber(getgenv().luckMatch)
+                                print("Extracted luck number from ContentText: " .. getgenv().luckNumber)
+                                return getgenv().luckValue, getgenv().luckNumber
+                            end
+                        end
+                    end
+
+                end
+                
+                -- Wait a short time before checking again
+                task.wait(0.2)
+            end
+            
+            print("Timed out waiting for egg luck value")
+            return getgenv().luckValue, getgenv().luckNumber
+        end
+        
+        
+        -- Determine which thumbnail to use based on the item name
+        getgenv().thumbnailUrl = "https://s2.ezgif.com/tmp/ezgif-2fb79b86c311c.gif" -- default thumbnail
+        getgenv().chestNameLower = string.lower(chestName)
+        if string.find(getgenv().chestNameLower, "egg") then
+            getgenv().luckValue, getgenv().luckNumber = getgenv().waitForEggLuckValue(chestObj, 2)
+            
+            if getgenv().luckNumber <= 5 and getgenv().luckNumber > 0 then
+                print("Skipping webhook for egg with luck <= x5: " .. chestName .. " (Luck: " .. getgenv().luckValue .. ")")
+                return
+            end
+        end
+    
+
+        
+        if string.find(getgenv().chestNameLower, "egg") then
+            getgenv().thumbnailUrl = getgenv().urls["EggIcon"]
+            print("Using Egg icon for: " .. chestName)
+        elseif string.find(getgenv().chestNameLower, "chest") then
+            getgenv().thumbnailUrl = getgenv().urls["ChestIcon"]
+            print("Using Chest icon for: " .. chestName)
+        end
+        
+        -- Create fields array for the embed
+        getgenv().fields = {
+            {
+                name = "<:id:1015938238038429846> Job ID: "..tostring(game.JobId),
+                value = "",
+                inline = false
+            },
+            {
+                name = "🔗 Join Server",
+                value = "```lua\ngame:GetService('TeleportService'):TeleportToPlaceInstance("..game.PlaceId..", '"..game.JobId.."')```",
+                inline = false
+            },
+            {
+                name = "🌐 **Click to Join: https://www.roblox.com/games/start?placeId="..game.PlaceId.."&gameInstanceId="..game.JobId.."**",
+                value = "",
+                inline = false
+            },
+    
+            {
+                name = "<:clock:1328013975601811679> When: <t:" .. tostring(getgenv().currentTime) .. ":R>",
+                value = "",
+                inline = false
+            },
+            {
+                name = "<:chest:1360897783644815573> Found: " .. chestName,
+                value = "",
+                inline = false
+            },
+            {
+                name = "⏳ To Depart: <t:" .. (chestObj:GetAttribute("DespawnAt") and tostring(math.floor(chestObj:GetAttribute("DespawnAt"))) or "Unknown") .. ":R>",
+                value = "",
+                inline = false
+            },
+            {
+                name = "📏 Height: " .. (height or "Unknown"),
+                value = "",
+                inline = false
+            },
+        }
+        
+        -- Initialize variables for luck-based notification
+        getgenv().luckValue = "Unknown"
+        getgenv().luckNumber = 0
+        
+        -- Add luck field if it's an egg and has a luck value
+        if string.find(getgenv().chestNameLower, "egg") then
+            -- Try to find the luck label
+            if chestObj:FindFirstChild("Display") and 
+               chestObj.Display:FindFirstChild("SurfaceGui") and 
+               chestObj.Display.SurfaceGui:FindFirstChild("Icon") and 
+               chestObj.Display.SurfaceGui.Icon:FindFirstChild("Luck") then
+                
+                getgenv().luckLabel = chestObj.Display.SurfaceGui.Icon.Luck
+                if getgenv().luckLabel.Text then
+                    getgenv().luckValue = getgenv().luckLabel.Text
+                    print("Found luck value for egg: " .. getgenv().luckValue)
+                    
+                    -- Extract the numeric value from the luck text (assuming format like "x25")
+                    getgenv().luckMatch = string.match(getgenv().luckValue, "x(%d+)")
+                    if getgenv().luckMatch then
+                        getgenv().luckNumber = tonumber(getgenv().luckMatch)
+                        print("Extracted luck number: " .. getgenv().luckNumber)
+                    end
+                end
+            end
+            
+            -- Add luck field to the embed
+            table.insert(getgenv().fields, {
+                name = "🍀 Luck: " .. getgenv().luckValue,
+                value = "",
+                inline = false
+            })
+        end
+        
+        getgenv().embed = {
+            title = "WH Chest Notifier",
+            description = "",
+            color = 16766720,
+            fields = getgenv().fields,
+            thumbnail = {
+                url = getgenv().thumbnailUrl
+            },
+            footer = {
+                text = "WH - Notifier",
+                icon_url = "https://media.discordapp.net/attachments/1289926050838478889/1357377844010942576/attachment.gif?ex=67ffce20&is=67fe7ca0&hm=bda3efb1700b2b6e0558a969b62c3215dd21b63d508d074679cd65b1147a160d&=&width=587&height=881"
+            },
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }
+        
+        -- Determine notification message based on item type and luck value
+        getgenv().notificationMessage = ""
+        
+        if string.find(getgenv().chestNameLower, "royal%-chest") then
+            getgenv().notificationMessage = "@everyone"
+        elseif string.find(getgenv().chestNameLower, "chest") then
+            getgenv().notificationMessage = "@here, <@1315351277634588693>, <@737002339621273631>"
+        elseif string.find(getgenv().chestNameLower, "egg") then
+            getgenv().isSpecialEgg = false
+            getgenv().specialEggs = {"man-egg", "lunar-egg", "void-egg", "nightmare-egg", "rainbow-egg"}
+            
+            for _, specialEgg in ipairs(getgenv().specialEggs) do
+                if string.find(getgenv().chestNameLower, specialEgg, 1, true) then
+                    getgenv().isSpecialEgg = true
+                    print("Special egg detected: " .. specialEgg .. " in " .. chestName)
+                end
+            end
+            
+            -- For eggs, check the luck value to determine mention level
+            if getgenv().isSpecialEgg and getgenv().luckNumber >= 50 then
+                getgenv().notificationMessage = "@everyone"
+                print("Setting @everyone notification for special egg with luck " .. getgenv().luckNumber)
+            elseif getgenv().isSpecialEgg and getgenv().luckNumber >= 25 then
+                getgenv().notificationMessage = "@here, <@1315351277634588693>, <@737002339621273631>"
+                print("Setting @here notification for special egg with luck " .. getgenv().luckNumber)
+            else
+                getgenv().notificationMessage = ""
+                print("No special notification for egg: " .. (getgenv().isSpecialEgg and "special egg but luck too low" or "not a special egg"))
+            end
+        else
+            getgenv().notificationMessage = ""
+        end
+
+
+        getgenv().data = {
+            content = getgenv().notificationMessage,
+            embeds = {getgenv().embed}
+        }
+        
+        getgenv().response = getgenv().http_request({
+            Url = getgenv().WebhookSettings.WebhookURL,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = game:GetService("HttpService"):JSONEncode(getgenv().data)
+        })
+        
+        if getgenv().response.Success then
+            warn("Webhook sent successfully!")
+        else
+            warn("Failed to send webhook: " .. (getgenv().response.StatusMessage or "Unknown error"))
+        end
+    end
+
+    getgenv().containsChest = function(name)
+        return string.find(string.lower(name), "chest") ~= nil
+    end
+    
+    getgenv().activeConnection = nil
+    
+    -- Function to clean up existing connections
+    getgenv().cleanupConnections = function()
+        if getgenv().activeConnection then
+            getgenv().activeConnection:Disconnect()
+            getgenv().activeConnection = nil
+            print("Cleaned up existing webhook connection")
+        end
+    end
+    
+    -- Function to scan existing items
+    getgenv().scanExistingItems = function()
+        for _, child in pairs(getgenv().rifts:GetChildren()) do
+            if getgenv().containsTargetItem(child.Name) then
+                getgenv().position = Vector3.new(0, 0, 0)
+                getgenv().height = "Unknown"
+                
+                if child:IsA("BasePart") then
+                    getgenv().position = child.Position
+                    getgenv().height = math.floor(child.Position.Y) .. "m"
+                elseif child:IsA("Model") then
+                    if child.PrimaryPart then
+                        getgenv().position = child.PrimaryPart.Position
+                    end
+                    
+                    if child.WorldPivot then
+                        getgenv().height = math.floor(child.WorldPivot.Y) .. "m"
+                    elseif child.PrimaryPart then
+                        getgenv().height = math.floor(child.PrimaryPart.Position.Y) .. "m"
+                    end
+                end
+                
+                getgenv().sendWebhook(child, child.Name, getgenv().position, getgenv().height)
+                print("Found existing item:", child.Name, "at height:", getgenv().height)
+            end
+        end
+    end
+    
+    -- Clean up any existing connections first
+    getgenv().cleanupConnections()
+    
+    -- Always set up the connection, regardless of webhook setting
+    -- Scan existing items if webhook is enabled
+    if getgenv().WebhookSettings and getgenv().WebhookSettings.SendWebhook then
+        getgenv().scanExistingItems()
+    else
+        print("Webhook sending is disabled. Skipping initial scan but still monitoring for new items.")
+    end
+    
+    -- Set up new connection for future items
+    getgenv().activeConnection = getgenv().rifts.ChildAdded:Connect(function(child)
+        if getgenv().containsTargetItem(child.Name) then
+            -- For eggs, wait longer to ensure luck value loads
+            if string.find(string.lower(child.Name), "egg") then
+                print("Egg detected, waiting for luck value to load: " .. child.Name)
+                task.wait(1.5) -- Wait longer for eggs to ensure luck value loads
+            else
+                task.wait(0.1) -- Short wait for non-egg items
+            end
+            
+            getgenv().position = Vector3.new(0, 0, 0)
+            getgenv().height = "Unknown"
+            
+            if child:IsA("BasePart") then
+                getgenv().position = child.Position
+                getgenv().height = math.floor(child.Position.Y) .. "m"
+            elseif child:IsA("Model") then
+                if child.PrimaryPart then
+                    getgenv().position = child.PrimaryPart.Position
+                end
+                
+                if child.WorldPivot then
+                    getgenv().height = math.floor(child.WorldPivot.Y) .. "m"
+                elseif child.PrimaryPart then
+                    getgenv().height = math.floor(child.PrimaryPart.Position.Y) .. "m"
+                end
+            end
+            
+            -- Only send webhook if enabled in settings
+            if getgenv().WebhookSettings and getgenv().WebhookSettings.SendWebhook then
+                getgenv().sendWebhook(child, child.Name, getgenv().position, getgenv().height)
+                print("New item detected and webhook sent:", child.Name, "at height:", getgenv().height)
+            else
+                print("New item detected but webhook not sent (disabled in settings):", child.Name, "at height:", getgenv().height)
+            end
+        end
+    end)
+    
+    print("Item monitoring started" .. (getgenv().WebhookSettings.SendWebhook and " with webhook notifications" or " without webhook notifications"))
+    
+    -- Return a function that can be used to restart the webhook monitoring
+    return function()
+        -- Clean up existing connections
+        getgenv().cleanupConnections()
+        
+        -- Always restart monitoring
+        return SendAllWebhook()
+    end
+end
+
+
+SendAllWebhook()

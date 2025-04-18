@@ -117,6 +117,7 @@ local IconModule = {
 		["pet_icon"] = "http://www.roblox.com/asset/?id=137388929706352";
 		["chest_icon"] = "http://www.roblox.com/asset/?id=114463607708844";
 		["farm_icon"] = "http://www.roblox.com/asset/?id=139721639536190";
+		["star_icon"] = "http://www.roblox.com/asset/?id=100551781708494";
 		["api"] = "http://www.roblox.com/asset/?id=6022668911";
 		["launch"] = "http://www.roblox.com/asset/?id=6026568211";
 		["text_rotation_down"] = "http://www.roblox.com/asset/?id=6031229334";

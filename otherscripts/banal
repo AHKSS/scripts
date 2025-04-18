@@ -1,0 +1,160 @@
+local notifiedRifts = {}
+
+-- Function to check if an item is in the wanted items list
+local function isWantedItem(itemName)
+    local lowerName = itemName:lower()
+    for _, wantedItem in pairs(Shared.Settings.WantedItems) do
+        if lowerName == wantedItem:lower() then
+            return true
+        end
+    end
+    return false
+end
+
+-- Function to send webhook notification
+local function sendWebhookNotification(rift)
+    if not Shared.Settings.EnableNotifications or Shared.Settings.WebhookUrl == "" then
+        return
+    end
+    
+    -- Check if we've already notified about this rift
+    if notifiedRifts[rift] then
+        return
+    end
+    
+    -- Mark this rift as notified
+    notifiedRifts[rift] = true
+    
+    print("Sending webhook notification for: " .. rift.Name)
+    
+    local HttpService = game:GetService("HttpService")
+    local http_request = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+    
+    local data = {
+        content = "@here",
+        embeds = {
+            {
+                title = "WH Notifier",
+                description = "",
+                color = 65280, 
+                fields = {
+                    {
+                        name = "Item Name: " .. tostring(rift.Name),
+                        value = "",
+                        inline = false
+                    },
+                    {
+                        name = "Height: ".. tostring(math.floor(rift.WorldPivot.Position.Y)) .. "m",
+                        value = "",
+                        inline = false
+                    },
+                    {
+                        name = "When: <t:" .. os.time() .. ":R>",
+                        value = "",
+                        inline = false
+                    },
+                    {
+                        name = "Despawn Time: " .. (rift:GetAttribute("DespawnAt") and ("<t:" .. math.floor(rift:GetAttribute("DespawnAt")) .. ":R>") or "Unknown"),
+                        value = "",
+                        inline = false
+                    },
+                },
+                timestamp = DateTime.now():ToIsoDate()
+            }
+        }
+    }
+    
+    local success, response = pcall(function()
+        return http_request({
+            Url = Shared.Settings.WebhookUrl,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = HttpService:JSONEncode(data)
+        })
+    end)
+    
+    if success then
+        print("Webhook sent successfully")
+    else
+        warn("Failed to send webhook: " .. tostring(response))
+    end
+end
+
+-- Function to check existing rifts and send webhooks for them
+local function checkExistingRifts()
+    local rifts = workspace.Rendered.Rifts:GetChildren()
+    for _, rift in pairs(rifts) do
+        if isWantedItem(rift.Name) then
+            print("Found existing wanted item: " .. rift.Name)
+            sendWebhookNotification(rift)
+        end
+    end
+end
+
+-- Function to handle when a new rift is added
+local function onRiftAdded(rift)
+    if isWantedItem(rift.Name) then
+        print("Found new wanted item: " .. rift.Name)
+        sendWebhookNotification(rift)
+    end
+end
+
+-- Function to handle when a rift is removed
+local function onRiftRemoved(rift)
+    if notifiedRifts[rift] then
+        notifiedRifts[rift] = nil
+    end
+end
+
+-- Main monitoring function
+local monitoringConnection = nil
+local removedConnection = nil
+
+local function startMonitoring()
+    if monitoringConnection then
+        monitoringConnection:Disconnect()
+        monitoringConnection = nil
+    end
+    
+    if removedConnection then
+        removedConnection:Disconnect()
+        removedConnection = nil
+    end
+    
+    checkExistingRifts()
+    
+    monitoringConnection = workspace.Rendered.Rifts.ChildAdded:Connect(onRiftAdded)
+    
+    removedConnection = workspace.Rendered.Rifts.ChildRemoved:Connect(onRiftRemoved)
+end
+
+startMonitoring()
+
+spawn(function()
+    local lastState = Shared.Settings.EnableNotifications
+    
+    while wait(1) do
+        if lastState ~= Shared.Settings.EnableNotifications then
+            lastState = Shared.Settings.EnableNotifications
+            
+            if lastState then
+                print("Notifications enabled, starting monitoring")
+                notifiedRifts = {}
+                startMonitoring()
+            else
+                print("Notifications disabled, stopping monitoring")
+                if monitoringConnection then
+                    monitoringConnection:Disconnect()
+                    monitoringConnection = nil
+                end
+                
+                if removedConnection then
+                    removedConnection:Disconnect()
+                    removedConnection = nil
+                end
+            end
+        end
+    end
+end)
